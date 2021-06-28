@@ -1,0 +1,37 @@
+if(command === "kick") {
+    if (!message.member.hasPermission("KICK_MEMBERS")) {
+      return message.reply("srry, you cant do that fam");
+    }
+    
+    let member = message.mentions.members.first() || message.guild.members.cache.get(args[0]);
+    if(!member)
+      return message.reply("plz mention a real person in this server");
+    if(!member.kickable) 
+      return message.reply("lmoa i cant kick someone same or higher role than u");
+    
+    let reason = args.slice(1).join(' ');
+    if(!reason) reason = "for no reason lol";
+    
+    await member.kick(reason)
+      .catch(error => message.reply(`srry ${message.author} i couldn't kick because of : ${error}`));
+    message.reply(`${member.user.tag} has been yeeted by ${message.author.tag} because ${reason}`);
+  }
+
+  if(command === "ban") {
+    if (!message.member.hasPermission("BAN_MEMBERS")) {
+      return message.reply("sorry bruh, you dont have perms");
+    }
+    
+    let member = message.mentions.members.first();
+    if(!member)
+      return message.reply("try mentioning an actual member in this server smh");
+    if(!member.bannable) 
+      return message.reply("I cant ban this user. do they have a higher role? do I have ban permissions? reeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+
+    let reason = args.slice(1).join(' ');
+    if(!reason) reason = "for no reason lol";
+    
+    await member.ban(reason)
+      .catch(error => message.reply(`Sorry ${message.author} I couldn't ban because of : ${error}`));
+    message.reply(`${member.user.tag} has been banned by ${message.author.tag} because: ${reason}`);
+  }
