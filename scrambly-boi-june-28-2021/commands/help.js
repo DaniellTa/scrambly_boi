@@ -3,6 +3,19 @@ const Discord = require("discord.js");
 module.exports = {
 	name: 'help',
 	execute(message, args) {
+
+    function darken(text){
+        let comms = text.split(" ")
+        let s = ""
+        for (let i = 0; i < comms.length; i++) {
+            if (comms[i] != "\n")
+                s += `\`${comms[i]}\`, `
+            else if (comms[i] == "\n")
+                s += comms[i]
+        }
+        return s.slice(0, s.length-2)
+    }
+
     var randomnumber = Math.floor(Math.random() * 2);
     var name = ""
     var pic = ""
@@ -48,19 +61,25 @@ module.exports = {
       message.channel.send(timehelp);
     }
     else{
-      const help = new Discord.MessageEmbed()
-      .setColor('#0099ff')
-      .setTitle('Scrambly Boi')
-      .setURL('https://discord.gg/WushFBN')
-      .setDescription('**prefix: plz**')
-      .setThumbnail('https://cdn.discordapp.com/attachments/547216646058803211/706988723547537509/help-me-i-die.gif')
-      .addField("Scrambles \<:peepohappy:693015038017142848>", "0, 1, 2, 3, noob3, 4, 5, 6, 7, [r/regripless](https://www.reddit.com/r/Cubers/comments/f8xxcf/a_bot_that_generates_regripless_scrambles_more/?utm_medium=android_app&utm_source=share), squan, pyraminx, megaminx, clock, skewb")
-      .addField("Resources <:pepothink:693014681903956008>", "invite, tuesdaytips, cross, beginnerf2l, f2lexplained, f2l, lookahead, vls, magicwondeful, oll, coll, ollcp, zbll, pll, 4lll, ohpll, lltips, 1lll, 3style, jperm, jay, feliks, max, cubeskills, cstimer, tc, scs, zcube, cubezz")
-      .addField("Cube Utility <:peepocube:748054614422585395>", "show <puzzle> <moves being turned> (eg. \"plz show 3 R U R' U'\")\nsetup <moves to inverse>\nsolve <scramble> | *solves the scramble inputted* (not just the inverse scram)\nmemo <scramble> | *plz help memo for more info*\nv <virtual> | (eg. \"plz v ijkf\" => R U R' U')")
-      .addField("Fun <:peepoyay:693014997756018709>", "rps, info, cool, diceroll, meme, recon, horny, vibe, pog, cry, yt, snipe, time, flipcoin, pop\nmal <anime> | returns link to anime\nwcaid <name> | returns link to wcaid\ntcs <query> | returns first result from tc site\nreck <name> | *roasts*\nratepp <name> | *pp inspection from scrambly himself*\nrategirl <name> | *rates girl out of 10*\nyeet <emote> | *yeets anything off a building*\n? <question> | *answers question*\nbless <name> | *blesses*")
-      .addField("Further info", "[Click here to add this bot to your server](https://discord.com/oauth2/authorize?client_id=601113688245665864&scope=bot&permissions=8)\n[Click here to join the official scrambly boi server](https://discord.gg/WushFBN)")
-      .setFooter(name, pic);
-      message.channel.send(help);
+      let scrams1 = darken('0 1 2 3 noob3 4 5 6 7 squan pyraminx megaminx clock skewb')
+        let scrams2 = "[regripless](https://www.reddit.com/r/Cubers/comments/f8xxcf/a_bot_that_generates_regripless_scrambles_more/?utm_medium=android_app&utm_source=share)"
+        let resources = darken('invite tuesdaytips cross beginnerf2l f2lexplained f2l lookahead vls magicwondeful oll coll ollcp zbll pll 4lll ohpll lltips 1lll 3style jperm jay feliks max cubeskills cstimer tc scs zcube cubezz')
+        let utility = "\`show\` \`<puzzle>\` \`<moves to show>\` \`(eg. \"plz show 3 R U R' U'\")\`\n\`setup\` \`<moves to inverse>\`\n\`memo\` \`<scramble>\` | \`*plz help memo for more info*\`\n\`v\` \`<virtual>\` | \`(eg. \"plz v ijkf\" => R U R' U')\`"
+        let fun1 = darken('time gcd rps info cool diceroll meme recon horny vibe pog cry yt snipe flipcoin pop useless')
+        let fun2 = "\n\`mal\` \`<anime>\` | \`*returns link to anime*\`\n\`wcaid\` \`<name>\` | \`*returns wca stats*\`\n\`tcs\` \`<query>\` | \`*returns first result from the cubicle*\`\n\`reck\` \`<name>\` | \`*roasts*\`\n\`ratepp\` \`<name>\` | \`*pp inspection*\`\n\`rategirl\` \`<name>\` | \`*female inspection*\`\n\`yeet\` \`<emote>\` | \`*yeets*\`\n\`?\` \`<question>\` | \`*answers*\`\n\`bless\` \`<name>\` | \`*blesses*\`"
+        const help = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle('Scrambly Boi')
+            .setURL('https://discord.gg/WushFBN')
+            .setDescription('**prefix: plz**')
+            .setThumbnail('https://cdn.discordapp.com/attachments/547216646058803211/706988723547537509/help-me-i-die.gif')
+            .addField("Scrambles <:cube:866167244212273163>", scrams1+ ", " + scrams2)
+            .addField("Resources <:pepothink:693014681903956008>", resources)
+            .addField("Cube Utility <:peepocube:748054614422585395>", utility)
+            .addField("Fun <:peepoyay:693014997756018709>", fun1 + fun2)
+            .addField("Further info", "[Add this bot to your server](https://awuu.me/scramblyboi)\n[Join the official scrambly boi server](https://discord.gg/WushFBN)")
+            .setFooter(name, pic);
+        message.channel.send(help);
     }
 	},
 }
