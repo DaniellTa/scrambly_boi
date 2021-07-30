@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const moment = require("moment")
+const giveMeAJoke = require('give-me-a-joke');
 const randomPuppy = require("random-puppy");
 const Cube = require("cubejs");
 const cube = new Cube();
@@ -14,7 +15,9 @@ const Stopwatch = require('statman-stopwatch');
 const stopwatch = new Stopwatch();
 const talkedRecently = new Set();
 const Canvas = require('canvas');
-const disbut = require('discord-buttons')(client);
+const disbut = require('discord-buttons');
+disbut(client)
+const { MessageButton, MessageActionRow } = require("discord-buttons")
 const { registerFont } = require('canvas');
 registerFont('Roboto/Roboto-Medium.ttf', { family: 'Roboto' });
 const express = require('express');
@@ -64,10 +67,15 @@ let sniped = JSON.parse(fs.readFileSync("./sniped.json", "utf8"));
 
 client.on("ready", () => {
   console.log(`Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds.`); 
-  client.user.setActivity(client.guilds.cache.size + " srvs | plz help", {type: 5}); 
+  client.user.setActivity(client.guilds.cache.size + " srvs | plz help", {type: 5});
+
+  // let activities = [`${client.guilds.cache.size} servers`, `${client.channels.cache.size} channels`], i = 0;
+
+  // setInterval(() => client.user.setActivity(`${activities[i++ % activities.length]} | plz help`, { type: "WATCHING" }), `10000`)
 });
 
 client.on("messageDelete", (messageDelete) => {
+  try{
   if(messageDelete && messageDelete.channel.name != undefined){
 
   if(!db.get(`snipedGuild_${messageDelete.guild.id}`)){
@@ -77,17 +85,15 @@ client.on("messageDelete", (messageDelete) => {
     if(db.get(`snipedGuild_${messageDelete.guild.id}.msgs`).length > 10){
       db.delete(`snipedGuild_${messageDelete.guild.id}`)
     }
-      const swor = ["fuck","bitch","pussy","cunt","slut","shit","nigg","negro","bich","kys"," ass"];
 
       let text = messageDelete.content
-      for (let i = 0; i < swor.length; i++){
-        let index = text.search(swor[i])
-        if (index != -1){
-          text = text.substring(0, index) + "||" + text.substring(index, index + swor[i].length) + "||" + text.substring(index + swor[i].length)
-        }
-      }
-      // message.channel.send(text)
-      db.push(`snipedGuild_${messageDelete.guild.id}.msgs`, text)
+      let re = /fuck|shit|bitch|pussy|cunt|slut|nigg|bich|negro|kys/gi;
+
+      let newStr = text.replace(re, (match) => {
+          return `||${match}||`
+      });
+
+      db.push(`snipedGuild_${messageDelete.guild.id}.msgs`, newStr)
 
       try{
         if(!messageDelete.attachments.first()) {
@@ -99,21 +105,23 @@ client.on("messageDelete", (messageDelete) => {
           var url = JSON.stringify(messageDelete.attachments.first().url)
           db.push(`snipedGuild_${messageDelete.guild.id}.msgs`, url.substring(1, url.length-1))
         }
-      }catch(error){console.log("SAVING CONTENT ERROR\n") + error}
+      }catch(error){}
 
       try{
         db.push(`snipedGuild_${messageDelete.guild.id}.pfps`, messageDelete.author.avatarURL())
-      }catch(error){console.log("SAVING PFP ERROR\n") + error}
+      }catch(error){}
 
       try{
         db.push(`snipedGuild_${messageDelete.guild.id}.tag`, messageDelete.author.tag)
-      }catch(error){console.log("SAVING TAG ERROR\n") + error}
+      }catch(error){}
   }
   }
-}); 
+  }catch(e){console.log("MESSAGEDELETE EVENT")}
+});
 
 
 client.on("typingStart", function(channel, user){
+  try{
 
   if(db.get(`${user.id}_start_timer`) && channel.id == String(db.get(`${user.id}_start_timer.channelId`)) && db.get(`${user.id}_start_timer.checkTime`)){
     db.set(`${user.id}_start_timer.checkTime`, false)
@@ -154,13 +162,16 @@ client.on("typingStart", function(channel, user){
         });
     });
   }
+  }catch(e){console.log("TYPINGSTART EVENT")}
 });
 
 client.on("guildCreate", guild => {
   console.log(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount - 1} members!`);
   client.user.setActivity("plz help | " + client.guilds.cache.size + " servers"); 
   client.channels.cache.get("709982756129734667").send(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount - 1} members!`);
-  client.channels.cache.get("710707752078671913").send(`NEW SERVER: ${guild.name} (id: ${guild.id}). This server has ${guild.memberCount - 1} members <a:jiggly:725923225368002580>`);
+  if(guild.name != null){
+    client.channels.cache.get("710707752078671913").send(`NEW SERVER: \`${guild.name}\`(id: ${guild.id}). This server has ${guild.memberCount - 1} members <a:jiggly:725923225368002580>`);
+  }
 });
 
 client.on("guildDelete", guild => {
@@ -168,7 +179,7 @@ client.on("guildDelete", guild => {
   client.user.setActivity("plz help | " + client.guilds.cache.size + " servers"); 
   client.channels.cache.get("709982756129734667").send(`I have been removed from: ${guild.name} (id: ${guild.id}). This guild had ${guild.memberCount} members :(`);
   if (guild.name != null){
-    client.channels.cache.get("710707752078671913").send(`Yeeted from: ${guild.name} (id: ${guild.id}). This server had ${guild.memberCount} members <a:cry12:738590696151318561>`);
+    client.channels.cache.get("710707752078671913").send(`Yeeted from: \`${guild.name}\`(id: ${guild.id}). This server had ${guild.memberCount} members <a:cry12:738590696151318561>`);
   }
 });
 
@@ -234,6 +245,8 @@ function plz3(){
 
 
 client.on("clickButton", async (button) => {
+  if(button.clicker.user){
+  try{
   const rock = new disbut.MessageButton()
   .setStyle("blurple")
   .setLabel("rock")
@@ -247,7 +260,7 @@ client.on("clickButton", async (button) => {
   .setLabel("scissors")
   .setID(`${button.clicker.user.id}_scissors`)
   if(button.id === `${button.clicker.user.id}_rock`){
-    button.defer()
+    button.reply.defer()
     var dict = {
       0: "I choose rock <:pepoS:753281368959746188>",
       1: "I choose paper <:pepekekloser:824055843443572776>",
@@ -257,10 +270,10 @@ client.on("clickButton", async (button) => {
     rand = Math.floor(Math.random() * 3)
     if (rand == 1) db.add(`losses_${button.clicker.user.id}`, 1)
     if (rand == 2) db.add(`wins_${button.clicker.user.id}`, 1)
-    button.message.edit("Wins: " + db.get(`wins_${button.clicker.user.id}`) + "\nLosses: " + db.get(`losses_${button.clicker.user.id}`) + "\n" + dict[rand], {buttons: [rock.setStyle("green"), paper, scissors]})
+    button.message.edit("Wins: " + db.get(`wins_${button.clicker.user.id}`) + "\nLosses: " + db.get(`losses_${button.clicker.user.id}`) + "\n" + dict[rand])
   }
   if(button.id === `${button.clicker.user.id}_paper`){
-    button.defer()
+    button.reply.defer()
     var dict = {
       0: "I choose rock <:pepeangy:693009494153887774>",
       1: "I choose paper <:pepoS:753281368959746188>",
@@ -270,10 +283,10 @@ client.on("clickButton", async (button) => {
     rand = Math.floor(Math.random() * 3)
     if (rand == 2) db.add(`losses_${button.clicker.user.id}`, 1)
     if (rand == 0) db.add(`wins_${button.clicker.user.id}`, 1)
-    button.message.edit("Wins: " + db.get(`wins_${button.clicker.user.id}`) + "\nLosses: " + db.get(`losses_${button.clicker.user.id}`) + "\n" + dict[rand], {buttons: [rock, paper.setStyle("green"), scissors]})
+    button.message.edit("Wins: " + db.get(`wins_${button.clicker.user.id}`) + "\nLosses: " + db.get(`losses_${button.clicker.user.id}`) + "\n" + dict[rand])
   }
   if(button.id === `${button.clicker.user.id}_scissors`){
-    button.defer()
+    button.reply.defer()
     var dict = {
       0: "I choose rock <:pepekekloser:824055843443572776>",
       1: "I choose paper <:pepeangy:693009494153887774>",
@@ -283,7 +296,7 @@ client.on("clickButton", async (button) => {
     rand = Math.floor(Math.random() * 3)
     if (rand == 0) db.add(`losses_${button.clicker.user.id}`, 1)
     if (rand == 1) db.add(`wins_${button.clicker.user.id}`, 1)
-    button.message.edit("Wins: " + db.get(`wins_${button.clicker.user.id}`) + "\nLosses: " + db.get(`losses_${button.clicker.user.id}`) + "\n" + dict[rand], {buttons: [rock, paper, scissors.setStyle("green")]})
+    button.message.edit("Wins: " + db.get(`wins_${button.clicker.user.id}`) + "\nLosses: " + db.get(`losses_${button.clicker.user.id}`) + "\n" + dict[rand])
   }
 
   const scramble = new disbut.MessageButton()
@@ -291,7 +304,7 @@ client.on("clickButton", async (button) => {
   .setLabel("press for new scramble")
   .setID(`${button.clicker.user.id}_scramble`)
   if(button.id === `${button.clicker.user.id}_scramble`){
-    button.defer()
+    button.reply.defer()
     button.message.edit({
       buttons: [scramble],
       embed: plz3()
@@ -299,12 +312,12 @@ client.on("clickButton", async (button) => {
   }
 
   if (button.id === "no"){
-    button.defer()
+    button.reply.defer()
     button.channel.send(`<@${button.clicker.user.id}> clicked no`)
   }
 
   if (button.id === "yes"){
-    button.defer()
+    button.reply.defer()
     const embed = new Discord.MessageEmbed()
     .setTitle("ok you pressed yes")
     .setDescription("now subscribe pussy")
@@ -324,29 +337,31 @@ client.on("clickButton", async (button) => {
     if (member.roles.cache.find(r => r.name === "Muted")){
 
       if (member.user.tag == button.id){
-        button.defer()
+        button.reply.defer()
         if (!button.clicker.member.hasPermission("KICK_MEMBERS")) {
           return button.clicker.member.send("stfu you dont have perms")
         }
         let mutedRole = button.guild.roles.cache.find(role => role.name === "Muted")
         member.roles.remove(mutedRole).catch(console.error)
 
-        var buttons_list = []
-        for (let i = 0; i<mutelist.length; i++){
-          let newbutton = new disbut.MessageButton()
-          .setStyle("blurple")
-          .setLabel(mutelist[i])
-          .setID(mutelist[i])
-          buttons_list.push(newbutton)
-        }
-        const embed = new Discord.MessageEmbed()
-        .setTitle("Who do you want to unmute?")
-        .setColor("BLUE")
-        button.message.edit(member.user.tag + " is unmuted", {
-          buttons: buttons_list,
-          embed: embed
-        })
-        mutelist = []
+        button.message.edit(member.user.tag + " is unmuted")
+
+        // var buttons_list = []
+        // for (let i = 0; i<mutelist.length; i++){
+        //   let newbutton = new disbut.MessageButton()
+        //   .setStyle("blurple")
+        //   .setLabel(mutelist[i])
+        //   .setID(mutelist[i])
+        //   buttons_list.push(newbutton)
+        // }
+        // const embed = new Discord.MessageEmbed()
+        // .setTitle("Who do you want to unmute?")
+        // .setColor("BLUE")
+        // button.message.edit(member.user.tag + " is unmuted", {
+        //   buttons: buttons_list,
+        //   embed: embed
+        // })
+        // mutelist = []
       }
       else{
         mutelist.push(member.user.tag)
@@ -357,7 +372,7 @@ client.on("clickButton", async (button) => {
 
   // clicks start button 
   if (button.id === `${button.clicker.user.id}_timer`){
-    button.defer()
+    button.reply.defer()
     db.set(`${button.clicker.user.id}_start_timer`, {start: [Date.now()], checkTime: [true], channelId: [button.message.channel.id], msgId: [button.message.id]})
 
     let scram = db.get(`${button.clicker.user.id}_all_scrambles`)[db.get(`${button.clicker.user.id}_all_scrambles`).length - 1]
@@ -378,7 +393,7 @@ client.on("clickButton", async (button) => {
 
   // clicks stop button
   if (button.id === `${button.clicker.user.id}_stop_timer`){
-    button.defer()
+    button.reply.defer()
     db.set(`${button.clicker.user.id}_start_timer.checkTime`, false)
 
     let elapsed = ((Date.now() - db.get(`${button.clicker.user.id}_start_timer.start`))/1000).toFixed(2)
@@ -408,16 +423,21 @@ client.on("clickButton", async (button) => {
     .setLabel("times history")
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_past_times`)
+
+    const tip = new disbut.MessageButton()
+    .setLabel("tip")
+    .setStyle("blurple")
+    .setID(`${button.clicker.user.id}_tip`)
     
     button.message.edit({
-      buttons: [start, last_scram, past_times],
+      buttons: [start, last_scram, past_times, tip],
       embed: embed
     })
   }
 
   //clicks times history
   if (button.id === `${button.clicker.user.id}_past_times`){
-    button.defer()
+    button.reply.defer()
 
     let history = []
     let total = 0
@@ -452,9 +472,32 @@ client.on("clickButton", async (button) => {
     })
   }
 
+  //clicks tip
+  if (button.id === `${button.clicker.user.id}_tip`){
+    button.reply.defer()
+
+    const embed = new Discord.MessageEmbed()
+    .setTitle("Tab Navigation")
+    .setDescription("If you are on PC, try the following steps to time your solves more consistently!\n\n1. TAB\n2. UP ARROW\n3. TAB (x4)\n4. Press or hold SPACE to start and stop the timer")
+    .setColor('BLUE')
+    .setImage("https://cdn.discordapp.com/attachments/524029492449116160/870098289293410395/final_6101f2555955d800f69eba3e_729059.gif")
+    .setFooter(button.clicker.user.tag, button.clicker.user.avatarURL())
+
+    const back = new disbut.MessageButton()
+    .setLabel("go back")
+    .setStyle("red")
+    .setID(`${button.clicker.user.id}_back`)
+
+    button.message.edit({
+      buttons: [back],
+      embed: embed
+    })
+  }
+
+
   //clicks go back
   if (button.id === `${button.clicker.user.id}_back`){
-    button.defer()
+    button.reply.defer()
 
     const embed = new Discord.MessageEmbed()
     .setTitle("Timer for " + button.clicker.user.username)
@@ -485,7 +528,7 @@ client.on("clickButton", async (button) => {
 
   // clicks last scramble
   if (button.id === `${button.clicker.user.id}_last_scramble`){
-    button.defer()
+    button.reply.defer()
 
     const embed = new Discord.MessageEmbed()
     .setTitle("Timer for " + button.clicker.user.username)
@@ -516,7 +559,7 @@ client.on("clickButton", async (button) => {
 
   //clicks next scramble
   if (button.id === `${button.clicker.user.id}_next_scramble`){
-    button.defer()
+    button.reply.defer()
 
     const embed = new Discord.MessageEmbed()
     .setTitle("Timer for " + button.clicker.user.username)
@@ -544,12 +587,28 @@ client.on("clickButton", async (button) => {
       embed: embed
     })
   }
+
+  if(button.id == `useless_button_${button.clicker.user.id}`){
+    button.reply.defer()
+    const touch = new disbut.MessageButton()
+    .setStyle("green")
+    .setLabel("Press me")
+    .setID(`useless_button_${button.clicker.user.id}`)
+
+    button.message.edit(`<@${button.clicker.user.id}>`, null)
+    setTimeout(() => {
+      button.message.edit("_ _", {buttons: [touch]})
+    }, 1000);
+  }
+  }catch(e){console.log(e)}
+  }
 });
 
 //==================================================================
   client.on("message", async message => {
-    if(message.author.id === client.user.id) return;
-
+    try{
+    if(message.author.id === client.user.id) return; //i added it bro bro i added reeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    // ok i think i am bad
     // respond to dms
     if (message.channel.name == undefined) {
       try{
@@ -592,25 +651,34 @@ client.on("clickButton", async (button) => {
     }
   }
 
-  if(message.content.toLowerCase() === "plz time"){
-    let scram = plz3()
-    db.set(`${message.author.id}_all_times`, [0])
-    db.set(`${message.author.id}_all_scrambles`, [scram.description])
-    const embed = new Discord.MessageEmbed()
-    .setTitle("Timer for " + message.author.username)
-    .setDescription(scram.description)
-    .setColor("BLUE")
-    .setThumbnail(message.author.avatarURL())
+  // if(message.content.toLowerCase() === "plz time"){
+  //   let scram = plz3()
+  //   db.set(`${message.author.id}_all_times`, [0])
+  //   db.set(`${message.author.id}_all_scrambles`, [scram.description])
+  //   const embed = new Discord.MessageEmbed()
+  //   .setTitle("Timer for " + message.author.username)
+  //   .setDescription(scram.description)
+  //   .setColor("BLUE")
+  //   .setThumbnail(message.author.avatarURL())
 
-    const start = new disbut.MessageButton()
+  //   const start = new disbut.MessageButton()
+  //   .setStyle("green")
+  //   .setLabel("start timer")
+  //   .setID(`${message.author.id}_timer`)
+
+  //   message.channel.send({
+  //     buttons: [start],
+  //     embed: embed
+  //   })
+  // }
+
+  if(message.content.toLowerCase() == "plz useless"){
+    const touch = new disbut.MessageButton()
     .setStyle("green")
-    .setLabel("start timer")
-    .setID(`${message.author.id}_timer`)
+    .setLabel("Press me")
+    .setID(`useless_button_${message.author.id}`)
 
-    message.channel.send({
-      buttons: [start],
-      embed: embed
-    })
+    message.channel.send("_ _", {buttons: [touch]})
   }
 
     //________________________________________________
@@ -650,27 +718,6 @@ client.on("clickButton", async (button) => {
     //only for sb and test server (private servers)
     if(message.guild.id == 524028960565362728 || message.guild.id == 681177598931238920 || message.guild.id == 528046335551864832 || message.guild.id == 700411795223085146 || message.guild.id == 778068679321452614){
 
-      megu = ['megumin','crazy-headed girl','jailbait','Crazy Crimson Demon Girl','The Top Mage in Axel','The Greatest of the Crimson Demons',"The 'Incapable' Crimson Demon",'Fake Megumin',"The Weirdo Hyoizaburo's Daughter",'the joke mage','the worst mage','the explosion mage','onion duck murderer','eromin','loli killer','number one joke mage of the crimson demons','meagermin','explosion artisan','the true crimson goddess of destruction','demon king megumin']
-      megumin = false
-      for (let i = 0; i < megu.length; i++){
-        if(message.content.toLowerCase() == "$wish " + megu[i].toLowerCase()){
-          megumin = true
-        }
-      }
-      if(megumin){
-        if(message.author.id != 483818735849963530){
-          message.reply("you dare wish best girl. <@483818735849963530> look at this shit")
-          message.channel.send("<:pepeshoot:756689633538080842>")
-        }
-      }
-      if (message.guild.id == 681177598931238920){
-        if(message.content.toLowerCase().indexOf("tatak") != -1){
-          message.delete()
-        }
-        if(message.author.id == 510992389180096512 && message.content.toLowerCase().indexOf("megumin") != -1){
-          message.delete()
-        }
-      }
 
       //_______________________________________________________________________
       //#guess-the-number
@@ -808,7 +855,7 @@ client.on("clickButton", async (button) => {
 
       //________________________________________________
       //joining chains actually works per channel now
-      if(message.content.toLowerCase().indexOf("plz") != 0 && !message.content.includes("@")){
+      if(message.content.toLowerCase().indexOf("plz") != 0 && !message.content.includes("@") && message.channel.id != 829843825417125908){
           if(!db.get(`chains_${message.channel.id}`)){
               db.set(`chains_${message.channel.id}`, [message.content])
           }
@@ -828,15 +875,9 @@ client.on("clickButton", async (button) => {
       }
 
       //finding last channel person talked in
-      db.set(`lastfound_${message.author.id}`, message.channel.id)
-
-      //_______________________________________
-      //shortening links
-      // if(message.content.startsWith("http")){
-      //   const embed = new Discord.MessageEmbed()
-      //     .setDescription("[shortlink](" +message.content+ ")")
-      //   message.channel.send(embed)
-      // }
+      db.set(`lastfound_guild_${message.author.id}`, message.guild.id)
+      db.set(`lastfound_channel_${message.author.id}`, message.channel.id)
+      db.set(`lastfound_msg_${message.author.id}`, message.id)
       
       //________________________________________________
       //gn gm
@@ -928,13 +969,23 @@ client.on("clickButton", async (button) => {
             if (err) console.error(err)
           });
         }
-
       }
 
       if (message.content.toLowerCase() === 'plz track sleep' || message.content.toLowerCase() === 'plz tracksleep'){
         try{
           var sleeptime = (message.createdTimestamp - gnn[message.author.id].start)/1000;
-          message.channel.send("you slept for " + sleeptime + " seconds")
+
+          if(sleeptime>0 && sleeptime<60) message.channel.send("<@"+message.author.id + "> slept for " + sleeptime + " seconds");
+
+          else if(sleeptime >= 60 && sleeptime < 3600) message.channel.send("<@"+message.author.id + "> slept for " + Math.round(sleeptime/60) + " minutes and " + Math.round(sleeptime%60) + " seconds");
+
+          else if(sleeptime >= 3600 && sleeptime < 86400) message.channel.send("<@"+message.author.id + "> slept for " + Math.round(sleeptime/3600) + " hours and " + Math.round(((sleeptime)%3600)/60) + " minutes");
+
+          else if(sleeptime >= 86400) message.channel.send("<@"+message.author.id + "> slept for " + Math.round(sleeptime/86400) + " days and " + Math.round((sleeptime%86400)/3600) + " hours");
+
+          else{
+            return message.channel.send("this message shouldnt be printed unless bad code")
+          }
         }
         catch(e){message.channel.send("something didnt work")}
       }
@@ -998,18 +1049,7 @@ client.on("clickButton", async (button) => {
       //________________________________________________
       //random shit
       if(message.content.toLowerCase() === "plz tell me who asked") message.channel.send("nobody");
-      if(message.content.toLowerCase() === "first") message.channel.send("second");
       if(message.content.toLowerCase() === "whats crack a lackin its ya boy jefferson") message.channel.send("ok buddy")
-      if (message.content.toLowerCase() === 'brb') message.channel.send('<:peponice:693014841614663700>');
-
-      if(message.content.toLowerCase() === "plz cant"){
-        db.add(`cant`, 1)
-        message.channel.send(db.get(`cant`) + " cants <:cant:796445448696889404>")
-      }
-
-      if(message.content.includes("<:cant:796445448696889404>")){
-        db.add(`cant`, 1)
-      }
       
 
       if (message.content.toLowerCase().startsWith("plz mute") ){
@@ -1071,6 +1111,7 @@ client.on("clickButton", async (button) => {
       }
 
     }
+    }catch(e){console.log("FIRSTMESSAGE EVENT")}
 
 });
 
@@ -1078,8 +1119,14 @@ client.on("clickButton", async (button) => {
 
 
 client.on("message", async message => {
+  try{
   if(message.author.id === client.user.id) return;
   if (message.channel.id === 1) return;
+
+  if (db.get(`commands_${message.guild.id}`) && db.get(`commands_${message.guild.id}`).includes(message.content.toLowerCase())) {
+        let index = db.get(`commands_${message.guild.id}`).indexOf(message.content.toLowerCase())
+        message.channel.send(db.get(`response_${message.guild.id}`)[index])
+    }
 
   if(!(message.content.toLowerCase().indexOf("plz thog") != -1) && !(message.content.indexOf("<") != -1)){
     db.set(`lastMessage_${message.channel.id}`, message.content)
@@ -1263,6 +1310,85 @@ client.on("message", async message => {
       message.channel.send(final)
     }
   }
+  const emote_ids = ['693009494153887774', '693009687406182422', '693009829291229225', '693009903606038548', '693010009973587978', '693010333371072532', '693010394045743125', '693013769307029514', '693014681903956008', '693014724551508044', '693014841614663700', '693014877568106507', '693014915287613490', '693014997756018709', '693015038017142848', '693015074255667221', '693015336194277386', '693015602335580300', '693015674490060822', '693015758493581342', '693022017355513939', '693022072384782336', '693022104370675713', '693022138113851433', '693022167457333278', '693022227955712050', '693022303558303794', '693022337087438868', '693025345569554463', '693029358318911549', '693029390753202206', '697969060444635166', '699925614563426374', '700584553064038402', '708107710259789904', '726295409219338280', '727742438210273322', '728468163972562985', '728469597111713843', '731788220244819999', '745502506380951582', '747178497042022532', '747588832060243998', '749906799817261078', '751312812760104990', '752405809245192311', '753271594842980442', '753279557506826360', '753280676870226034', '753280701348053099', '753281368959746188', '753281584983179396', '753281975472881777', '753291963742027776', '753326529190166576', '753386308529029271', '754105414303481856', '754440785579212881', '754894303263719525', '755481918266540074', '755881772167987231', '755976650910466089',
+    '756613116212805802', '756689633538080842', '757635972514185349', '757662928462676038', '758329342156865567', '758340290268102677', '758340579095740497', '758340716413059102', '758341153979629648', '758551869823385670', '758821440241270825', '758898819101622282', '760686300596142130', '766444039113146399', '766725701193039924', '771949862186778684', '772514536964096042', '774024637754376243', '775567100440870962', '778469015597219871', '779914992891199528', '782679702471966752', '787015483740258310', '793774281950887946', '796445448696889404', '798614014024351794', '799043630102872064', '800778767991046154', '800815775538479115', '800954114426142738', '802748542719885352', '802767300776034354', '802768113539874816', '803026002406146088', '803841454408990721', '804407259399454740', '808718426750844988', '809583946090020934', '811833641361604639', '814187863226187776', '818525447347503154', '821471662922268703', '821521040848846868', '821523509372911627', '821523560971108392', '821523579627503646', '821523731498401833', '821525556625276958', '821525973547614248', '821538446341701672', '821539628556353546', '821539639928160337', '821539672546345001', '821539688606859325', '821540112940269669', '821789578016718898', '821789636720066610', '821847912908324884', '821195175358758943', '821863093877211226', '821876053030862889', '821876080864264202', '731389913995542558', '821876107292573708', '725923225368002580', '821876133896388638', '821876146550603826', '821876162057863208', '821876178830360631', '821876197453594675', '799358581220442164', '799358685637771264', '821876244000800769', '821876275760726048', '821876310338306059', '821876334925185075', '821876363002642482', '821876373185495040', '821876387932798996', '821876399538962433', '821876411114455042', '821876422217564183', '821876432254664714', '821876441331269664', '821876451627499521', '822144934928318475', '733054261859975260', '821171821448527872', '823385765517590559', '823995495776780298', '824055843443572776', '824069672353267712', '824806346645831690', '824806386705760288', '825116369904861214', '825157518363328512', '825161178929168415', '825833723932311583', '825997674603348010', '826247986483822602', '826519795016007690', '826536677014896670', '826838828752699483', '826949153220460544', '826961647947481139',
+    '826972742448447508', '827221887746441266', '827228925653418004', '827422455501029437', '828081938757582878', '829943863040671745', '831201854950998097', '831213729571274752', '831569928682340442', '831657654497443850', '832301413459427408', '832334451383205918', '834190578681774110', '834190652383166535', '834190813843947541', '834191888490954752', '834192009194897448', '835612280095768648', '835975503377858570', '836330287121563729', '836330629221056584', '836673311768838185', '837545338876854373', '839216233982984223', '843217726390403104', '852967640187797574', '852969416294924289', '852969485132234782', '853015507203522640', '853133006519926804', '847291094144516119', '853346709059665941', '847311234478112788', '853412009093365760', '853412406730424343', '853438288912187422', '853438769180049408', '853438810816512000', '853439156943192074', '853446317211779082', '853451461291147265', '853451613200318505', '853468796545925120', '853469189558108161', '853469251986128906', '853470001037180959', '853482545437999105', '853483168740802561', '853483282130141224', '853483570391285770', '853483905549991977', '853484473018351616', '853484543331401774', '853484629080014869', '853484756514635836', '853484876657721385', '853485236015595581', '853485386730438677', '853485880701747221', '853486518257844284', '853488298626252820', '853488380910501898', '853488472886476800', '853488573280944179', '853488914832293888', '853489112791384084', '853489303800119296', '853489876413972501', '853489999257141248', '853495850663804938', '853496154897907712', '841528558522073139', '853498683123302431', '853733759795200080', '853749279213879336', '853751959721869363', '853770921637445632', '853790155025547314', '853790192984784896', '853806823747878933', '853811431275364352', '853976609810677760', '854033738391879740', '854098331981709402', '854099039675088936', '854102105929416725', '854145499124858890', '854156157655973968', '854156277944287252', '854157064468824114', '854157102183743498', '854157178452967443', '854157482133553162', '854157597984686081', '854157642595434536', '854157680532652042', '854157844148387851', '854157878255812649', '854157899949015042', '854158042786168843', '854158143931285565', '854158164327923733', '854158487281598475', '854158533860130837', '824857716966817813',
+    '738481242206371853', '854158831209938944', '854158876283109416', '854158895977857054', '854159231821414442', '854159386674331688', '854159415505715200', '854159441594941440', '854159520652984340', '854160128194379786', '854162340270047232', '854162455991550002', '854163945652486164', '854194561777270825', '763403025930256395', '854211906680258580', '854212049075699714', '854212713696985098', '854212963052814336', '854213001452322836', '854213025509670922', '854213049073532959', '854213137334796309', '854225447377567766', '854225543963475968', '854372867420586044', '854376042584342558', '854428298037166141', '854445290991255572', '854475848638660688', '854532528148185128', '854886764552388638', '854886848912424990', '854889545032269876', '855283388814721035', '855480933327437844', '855588366246084608', '855611133368205342', '855612456193228867', '856026236618145813', '856038962816352286', '856039007267061760', '856044170099163156', '856064365006553098', '856220599629512755', '856233678224621598', '856234853083119620', '856236729094373396', '856375192066326558', '856380068061773864', '856577591632461854', '856586513827364914', '856588758814949386', '856608802287779860', '856622833248239676', '856635741739417630', '856639282922913802', '856641640256110623', '856684901574901760', '856728662203301888', '856764983090216990', '857029422019248138', '857086523879063602', '857110653592141844', '857115166105403404', '857115240013889546', '857286984154087484', '857319179745099777', '857351518787993610', '857414393759662090', '857432645880381475', '857703800580472842', '857719139803070534', '857770505808248832', '857845250592735242', '857845360008626176', '857845445618040842', '857855686440648704', '857856128263258143', '858099820924764190', '858184992521191484', '858445665780105226', '858495514802388992', '858495608121720833', '858516311029448715', '858568263666237480', '858568265668231200', '858570726873104394', '858573610960551956', '858813939180765194', '858816167904542740', '858929206637494302', '858948956574973963', '859519364940300290', '859519544838455346', '859595944995455017', '859616958986453004', '859635866229800960', '859640732221177874', '859946580365541376', '859992513858109491', '859994527048663040', '860166182703595521', '860237474839003167', '860292349903765555',
+    '860349009708711947', '860376042820730901', '860378825011626034', '860379165080289330', '860379311260303390', '860380395698520076', '860382490849705985', '860682092513591326', '860682367377866773', '860745156700143616', '860752871619297290', '860992829790224394', '861365800753561640', '861507291584004117', '861643882425090048', '861643957305999360', '861663726838087720', '861727822560493589', '861994578704597012', '862159716448469003', '862427094013181952', '862488483334586380', '862539459576463371', '862539621690638356', '862711943420837898', '863077186196865074', '863287658168057856', '864209872458350592', '864219970636218389', '864366568313454603', '864649398062809099']
+
+  const emt = message.content.match(/<:.+?:\d+>/g)
+  const aemt = message.content.match(/<a:.+?:\d+>/g)
+
+  if(message.guild.id == 681177598931238920 && message.channel.id != 681657479691632640 && message.channel.id != 681178209634746368){
+    if (emt){
+        for(let i = 0; i<emote_ids.length;i++){
+            for (let j = 0;j<emt.length;j++){
+                if (emt[j].includes(emote_ids[i])){
+                    if(db.get(emt[j])){
+                        db.add(emt[j], 1)
+                    }
+                    else{
+                        db.set(emt[j], 1)
+                    }
+                    if (db.get(`elb_emotes`) && db.get(`elb_emotes`).includes(emt[j])) {
+                        let index = db.get(`elb_emotes`).indexOf(emt[j])
+                        // update count for emote in elb_count
+                        let arr = db.get(`elb_count.count`)
+                        db.delete(`elb_count.count`)
+                        for (let k = 0; k < index ;k++){
+                            db.push(`elb_count.count`, arr[k])
+                        }
+                        db.push(`elb_count.count`, db.get(emt[j]))
+                        for (let k = index + 1; k < arr.length; k++) {
+                            db.push(`elb_count.count`, arr[k])
+                        }
+                    }
+                    else {
+                        try{
+                            db.push(`elb_emotes`, emt[j])
+                            db.push(`elb_count.count`, db.get(emt[j]))
+                        }catch(e){console.log(e)}
+                    }
+                    break
+                }
+            }
+        }
+    }
+    if (aemt){
+        for (let i = 0; i < emote_ids.length; i++) {
+            for (let j = 0; j < aemt.length; j++){
+                if (aemt[j].includes(emote_ids[i])) {
+                    if (db.get(aemt[j])) {
+                        db.add(aemt[j], 1)
+                    }
+                    else {
+                        db.set(aemt[j], 1)
+                    }
+                    if (db.get(`elb_emotes`) && db.get(`elb_emotes`).includes(aemt[j])){
+                        let index = db.get(`elb_emotes`).indexOf(aemt[j])
+                        // update count for emote in elb_count
+                        let arr = db.get(`elb_count.count`)
+                        db.delete(`elb_count.count`)
+                        for (let k = 0; k < index; k++) {
+                            db.push(`elb_count.count`, arr[k])
+                        }
+                        db.push(`elb_count.count`, db.get(aemt[j]))
+                        for (let k = index+1; k < arr.length; k++) {
+                            db.push(`elb_count.count`, arr[k])
+                        }
+                    }
+                    else{
+                        try{
+                            db.push(`elb_emotes`, aemt[j])
+                            db.push(`elb_count.count`, db.get(aemt[j]))
+                        } catch (e) { console.log(e) }
+                    }
+                    break
+                }
+            }
+        }
+    }
+  }
 
   if(message.content.toLowerCase().indexOf(prefix) !== 0) return;
   const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -1270,6 +1396,17 @@ client.on("message", async message => {
 
   if(message.content.startsWith("plz")){
     db.add(`numCmds`, 1)
+
+    if(message.author.id != 827745746933514252 && message.author.id != 483818735849963530){
+      const embed = new Discord.MessageEmbed()
+        .setTitle("**"  + message.content + "**\n\n" + message.author.tag)
+        .addField("User", `<@${message.author.id}>`, true)
+        .addField("Guild", message.guild.id, true)
+        .setColor("BLUE")
+        .setThumbnail(message.author.avatarURL())
+        .setFooter(message.guild.name, message.guild.iconURL())
+      client.channels.cache.get("869705536583630859").send(embed);
+    }
   }
 
   //cmd handler
@@ -1340,7 +1477,7 @@ client.on("message", async message => {
   if(command === "charles" || command === "cabarpes")message.channel.send("https://www.youtube.com/channel/UCQ4jGtTL7r0UT0I9leqZx8w");
   if(command === "charlitics"){message.channel.send("https://www.youtube.com/channel/UCkJIc3zID6F1wzVUnQAsdPw")}
   if(command === "charlescubes"){message.channel.send("https://www.youtube.com/channel/UCXgyMvEfVHF55ujT4v1uc5Q")}
-  if(command === "test") message.channel.send('JS: <:dan:758551869823385670>');
+  if(command === "test") message.channel.send('JS: <:dan:758551869823385670>\nzeuro: <:zeuro:757662928462676038>\ndoss: <:doss:856764983090216990>\ncharles: <:charles:779768092913958963>');
   if(command === "die") message.channel.send("<:peepoignorecri:693014724551508044>");
   if(command === "69") message.channel.send("\<:plzsext:693010009973587978>");
   if(command === "100") message.channel.send("bruh wot");
@@ -1349,15 +1486,128 @@ client.on("message", async message => {
   if(command === "numcmds") message.channel.send("Number of commands used from me: " + db.get(`numCmds`))
   if(command === "0" || command === "0x0") message.channel.send("‏‏‎ ‎‏‏‎ ‎");
 
-  //much command
-  
-  if(command === "ping") {
-    const m = await message.channel.send("Ping?");
-    m.edit(`Pong! Latency is ${m.createdTimestamp - message.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
-  }
-
   //only for sb and test
-  if(message.guild.id == 681177598931238920 || message.guild.id == 857090061720092683){
+  if(message.guild.id == 681177598931238920 || message.guild.id == 524028960565362728){
+
+
+  if (command === "resetemote" && message.author.id == 827745746933514252){
+        let emote = args[0]
+        if(!emote){
+            return message.channel.send("format: plz resetemote <emote>")
+        }
+        db.delete(emote)
+        let arr = db.get(`elb_emotes`)
+        let arr2 = db.get(`elb_count.count`)
+        for (let i = 0; i < db.get(`elb_emotes`).length; i++) {
+            if (arr[i] == emote) {
+                arr.splice(i, 1)
+                arr2.splice(i, 1)
+                db.set(`elb_emotes`, arr)
+                db.set(`elb_count.count`, arr2)
+                return message.channel.send("removed " + emote + " count")
+            }
+        }
+    }
+
+    if (command === "resetemotelb" && message.author.id == 827745746933514252){
+        for (let i = 0; i < db.get(`elb_emotes`).length; i++) {
+            db.delete(db.get(`elb_emotes`)[i])
+        }
+        db.delete(`elb_emotes`)
+        db.delete(`elb_count`)
+        message.channel.send("reset emote lb")
+    }
+
+    if(command === "emotelb"){
+
+        let emotes = db.get(`elb_emotes`)
+        let count = db.get(`elb_count.count`)
+        let arr = []
+
+        for (var i = 0; i < emotes.length; i++) {
+            arr.push({theEmotes: emotes[i], theCount: count[i]})
+        }
+
+        arr = arr.sort((a, b) => a.theCount - b.theCount).reverse().slice(0, 100)
+
+        let embed = new Discord.MessageEmbed()
+            .setTitle("Emotes Leaderboard")
+            .setColor("BLUE")
+        let s = ""
+        
+        for (let i = 0; i<arr.length;i++){
+            try{
+                s += `${arr[i].theEmotes}${arr[i].theCount}    `
+                //embed.addField(i+1 + ". " + arr[i].theEmotes, arr[i].theCount, true)
+            }catch(e){console.log(e)}
+        embed.setDescription(s)
+        }
+        try{
+            message.channel.send(embed)
+        }catch(e){}
+    }
+
+    if (command === "reset" && message.author.id == 827745746933514252) {
+        db.delete(`commands_${message.guild.id}`)
+        db.delete(`response_${message.guild.id}`)
+        message.channel.send("reset commands")
+    }
+
+    if (command === "addc") {
+        if (!message.member.hasPermission("MANAGE_MESSAGES")) {
+            return message.channel.send("you dont have perms to do this")
+        }
+        if (!args[1]) {
+            return message.channel.send("format: plz addc <name> <response>")
+        }
+        let name = args[0].toLowerCase()
+        let reply = args.slice(1)
+        let cont = ""
+        for (let i = 0; i < reply.length; i++) {
+            cont += reply[i] + " "
+        }
+        if (name.includes("@") || cont.includes("@")) {
+            return message.channel.send("no pings in commands")
+        }
+        
+
+        db.push(`commands_${message.guild.id}`, name)
+        db.push(`response_${message.guild.id}`, cont)
+        message.channel.send(`added command \`${name}\` with reply: \`${cont}\``)
+    }
+
+    if(command === "removec"){
+        if(!args[0]){
+            return message.channel.send("format: plz removec <command>")
+        }
+        let comm = args[0]
+        let arr = db.get(`commands_${message.guild.id}`)
+        let arr2 = db.get(`response_${message.guild.id}`)
+        for (let i = 0; i < db.get(`commands_${message.guild.id}`).length;i++){
+            if(arr[i] == comm){
+                arr.splice(i, 1)
+                arr2.splice(i, 1)
+                db.set(`commands_${message.guild.id}`, arr)
+                db.set(`response_${message.guild.id}`, arr2)
+                return message.channel.send(`removed ${comm} from custom commands`)
+            }
+        }
+        message.channel.send(`${comm} was not found in custom commands`)
+    }
+
+    if (command === "allc") {
+        let commands = db.get(`commands_${message.guild.id}`)
+        let replies = db.get(`response_${message.guild.id}`)
+        let list = []
+        for (let i = 0; i < commands.length; i++) {
+            list.push("\`" + commands[i] + "\`\t" + replies[i])
+        }
+        let embed = new Discord.MessageEmbed()
+            .setTitle("Custom Commands")
+            .setColor("BLUE")
+            .setDescription(list)
+        message.channel.send(embed)
+    }
 
     if(command === "emote"){
       if(message.member.hasPermission("MANAGE_EMOJIS")){
@@ -1437,25 +1687,31 @@ client.on("message", async message => {
     }
 
     if(command === "find"){
-      let persontofind = args.slice(0).join(' ');
-      if(db.get(`lastfound_${persontofind}`)) {
-        message.channel.send("Person last found in <#" + db.get(`lastfound_${persontofind}`) + ">")
+      let person = args[0]
+      if(!person) return message.channel.send("you have to mention a user or id")
+
+      try{
+        person = await client.users.fetch(id)
+      }catch(e){
+        person = message.mentions.users.first() || message.author
       }
-      else if(db.get(`lastfound_${persontofind.slice(3, 21)}`)){
-        message.channel.send("Person last found in <#" + db.get(`lastfound_${persontofind.slice(3, 21)}`) + ">")
-      }
-      else if(Number.isInteger(persontofind) && persontofind.length == 18){
-        message.channel.send("This person hasnt said anything since this command has been made")
+      
+      if(db.get(`lastfound_msg_${person.id}`)) {
+        let link = `https://discord.com/channels/${db.get(`lastfound_guild_${person.id}`)}/${db.get(`lastfound_channel_${person.id}`)}/${db.get(`lastfound_msg_${person.id}`)}`
+        const embed = new Discord.MessageEmbed()
+          .setColor("BLUE")
+          .setDescription("Person was last found in <#" + db.get(`lastfound_channel_${person.id}`) + ">\n" + link)
+        message.channel.send(embed)
       }
       else{
-        message.channel.send("Valid format: plz find <user id>")
+        message.channel.send("this person has not said anything yet")
       }
     }
 
     if(command == "say"){
         var name = args.slice(0).join(' ');
         var sworCount=0;
-        const swor = ["fuck","bitch","pussy","cunt","slut","shit","nigg","negro","bich","kys"," ass"];
+        const swor = ["fuck","bitch","pussy","cunt","slut","shit","nigg","negro","bich","kys"," ass", "nlgg"];
 
         for(let i = 0; i < swor.length; ++i){
           if(name.toLowerCase().indexOf(swor[i].toLowerCase()) != -1){
@@ -1491,6 +1747,23 @@ client.on("message", async message => {
           }
         }
       }
+  }
+
+  //much command
+  
+  if(command === "ping") {
+    const m = await message.channel.send("Ping?");
+    m.edit(`Pong! Latency is ${m.createdTimestamp - message.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
+  }
+
+
+
+
+  if(command === "joke"){
+    // To get a random dad joke
+    giveMeAJoke.getRandomDadJoke (function(joke) {
+        message.channel.send(joke)
+    });
   }
 
   if(command === "diceroll"){
@@ -1574,8 +1847,8 @@ client.on("message", async message => {
         .setTitle(person.tag)
         .setDescription(`<@${person.id}>`)
         .setColor(main_color)
-        .addField("**Joined**", moment.utc(message.guild.member(person).joinedAt).format("MMMM Do YYYY, h:mm:ss a"))
-        .addField("**Registered**", moment.utc(person.createdAt).format("MMMM Do YYYY, h:mm:ss a"))
+        .addField("**Joined**", moment.utc(message.guild.member(person).joinedAt).format("MMMM Do YYYY, h:mm:ss a"), true)
+        .addField("**Registered**", moment.utc(person.createdAt).format("MMMM Do YYYY, h:mm:ss a"), true)
         .addField("**Roles [" + roleslist.length + "]**", rolesstring)
         .addField("**Permissions**", permsstring.substring(0, permsstring.length - 2))
         .setThumbnail(person.avatarURL())
@@ -1587,8 +1860,8 @@ client.on("message", async message => {
         .setTitle(person.tag)
         .setDescription(`<@${person.id}>`)
         .setColor(main_color)
-        .addField("**Joined**", moment.utc(message.guild.member(person).joinedAt).format("MMMM Do YYYY, h:mm:ss a"))
-        .addField("**Registered**", moment.utc(person.createdAt).format("MMMM Do YYYY, h:mm:ss a"))
+        .addField("**Joined**", moment.utc(message.guild.member(person).joinedAt).format("MMMM Do YYYY, h:mm:ss a"), true)
+        .addField("**Registered**", moment.utc(person.createdAt).format("MMMM Do YYYY, h:mm:ss a"), true)
         .addField("**Roles [" + roleslist.length + "]**", rolesstring)
         .setThumbnail(person.avatarURL())
         .setFooter(`ID: ${person.id} • Today: ${moment().format("DD/MM/YYYY")}`)
@@ -1599,8 +1872,8 @@ client.on("message", async message => {
         .setTitle(person.tag)
         .setDescription(`<@${person.id}>`)
         .setColor("BLUE")
-        .addField("**Joined**", moment.utc(message.guild.member(person).joinedAt).format("MMMM Do YYYY, h:mm:ss a"))
-        .addField("**Registered**", moment.utc(person.createdAt).format("MMMM Do YYYY, h:mm:ss a"))
+        .addField("**Joined**", moment.utc(message.guild.member(person).joinedAt).format("MMMM Do YYYY, h:mm:ss a"), true)
+        .addField("**Registered**", moment.utc(person.createdAt).format("MMMM Do YYYY, h:mm:ss a"), true)
         .addField("**Permissions**", permsstring.substring(0, permsstring.length - 2))
         .setThumbnail(person.avatarURL())
         .setFooter(`ID: ${person.id} • Today: ${moment().format("DD/MM/YYYY")}`)
@@ -1611,8 +1884,8 @@ client.on("message", async message => {
         .setTitle(person.tag)
         .setDescription(`<@${person.id}>`)
         .setColor("BLUE")
-        .addField("**Joined**", moment.utc(message.guild.member(person).joinedAt).format("MMMM Do YYYY, h:mm:ss a"))
-        .addField("**Registered**", moment.utc(person.createdAt).format("MMMM Do YYYY, h:mm:ss a"))
+        .addField("**Joined**", moment.utc(message.guild.member(person).joinedAt).format("MMMM Do YYYY, h:mm:ss a"), true)
+        .addField("**Registered**", moment.utc(person.createdAt).format("MMMM Do YYYY, h:mm:ss a"), true)
         .setThumbnail(person.avatarURL())
         .setFooter(`ID: ${person.id} • Today: ${moment().format("DD/MM/YYYY")}`)
       message.channel.send(embed)
@@ -1692,6 +1965,7 @@ client.on("message", async message => {
     }); //returns 1 meme
   }
 
+
   // if(command === "reddit"){
   //   let sub = args.slice(0).join(' ');
   //   if (!sub){
@@ -1722,6 +1996,18 @@ client.on("message", async message => {
       type: "custom",
       total: 1,
       subreddit: ["megumin"],
+    })
+    .then((result) => {
+      console.log(result)
+      message.channel.send(result[0]["image"])
+    }); //returns 1 megu
+  }
+
+  if (command === "cat" || command === "kitty"){
+    await redditimage.fetch({
+      type: "custom",
+      total: 1,
+      subreddit: ["kitty"],
     })
     .then((result) => {
       console.log(result)
@@ -1828,6 +2114,41 @@ client.on("message", async message => {
         message.channel.send(result[0]["image"])
       }
     }); //returns 1 rem
+  }
+
+  if(command === "time"){
+    const test_embed = new Discord.MessageEmbed()
+      .setTitle("Timer for " + message.author.tag)
+      .setDescription(`<@${message.author.id}>`)
+      .setColor("BLUE")
+      .setThumbnail(message.author.avatarURL())
+      .setFooter(message.guild.name, message.guild.iconURL())
+    client.channels.cache.get("869411177342595193").send(test_embed)
+
+    
+    let scram = plz3()
+    db.set(`${message.author.id}_all_times`, [0])
+    db.set(`${message.author.id}_all_scrambles`, [scram.description])
+    const embed = new Discord.MessageEmbed()
+    .setTitle("Timer for " + message.author.username)
+    .setDescription(scram.description)
+    .setColor("BLUE")
+    .setThumbnail(message.author.avatarURL())
+
+    const start = new disbut.MessageButton()
+    .setStyle("green")
+    .setLabel("start timer")
+    .setID(`${message.author.id}_timer`)
+
+    const tip = new disbut.MessageButton()
+    .setLabel("tip")
+    .setStyle("blurple")
+    .setID(`${message.author.id}_tip`)
+
+    message.channel.send({
+      buttons: [start, tip],
+      embed: embed
+    })
   }
 
   if(command === "gif"){
@@ -1950,10 +2271,10 @@ client.on("message", async message => {
     let suggestion = args.slice(0).join(' ');
 
     if(!suggestion){
-      return message.reply("what would you like to suggest")
+      return message.reply("format: plz suggest <suggestion>")
     }
     if(!suggestion.indexOf("@everyone") != -1){
-      client.channels.cache.get("742184476838461531").send(`new suggestion from ` + message.author.tag + ":\n" + suggestion);
+      client.channels.cache.get("742184476838461531").send(`new suggestion from ` + message.author.tag + ":\n\`" + suggestion + "\`");
       message.channel.send("Your suggestion has been recorded")
     }
   }
@@ -2026,40 +2347,30 @@ client.on("message", async message => {
     }
   }
 
-  if (command === "reset"){
-    let name = args[0]
-    let time = args[1]
-    let user = db.get(`userlb_${message.guild.id}`);
-    let xp = db.get(`guesslb_${message.guild.id}`);
-    for(var i = 0; i < db.get(`userlb_${message.guild.id}`).length; i++){
-      if(user[i] == name){
-        user.splice(i,1)
-        xp.splice(i,1)
-        db.set(`userlb_${message.guild.id}`, user)
-        db.set(`guesslb_${message.guild.id}`, xp)
-      }
-    }
-    message.channel.send("removed " + name + " from userlb")
+  // if (command === "reset"){
+  //   let name = args[0]
+  //   let time = args[1]
+  //   let user = db.get(`userlb_${message.guild.id}`);
+  //   let xp = db.get(`guesslb_${message.guild.id}`);
+  //   for(var i = 0; i < db.get(`userlb_${message.guild.id}`).length; i++){
+  //     if(user[i] == name){
+  //       user.splice(i,1)
+  //       xp.splice(i,1)
+  //       db.set(`userlb_${message.guild.id}`, user)
+  //       db.set(`guesslb_${message.guild.id}`, xp)
+  //     }
+  //   }
+  //   message.channel.send("removed " + name + " from userlb")
     
-    db.push(`guesslb_${message.guild.id}`, time)
-    db.push(`userlb_${message.guild.id}`, name)
-    message.channel.send("Pushed " + time + " to xplb and " + name + " to userlb");
-  }
+  //   db.push(`guesslb_${message.guild.id}`, time)
+  //   db.push(`userlb_${message.guild.id}`, name)
+  //   message.channel.send("Pushed " + time + " to xplb and " + name + " to userlb");
+  // }
 
-  if(command === "solve"){
-    let moves = "";
-    for(var i = 1; i < args.length; i++){
-      moves += args[i - 1] += " ";
-    }
-    Cube.initSolver();
-    cube.move(moves);
-    message.channel.send(cube.solve());
-    cube.move(Cube.inverse(moves));
-  }
 
   if(command === "snipe"){
 
-    if(message.guild.id != 717423546049101894 && message.guild.id != 582676753512923136){
+    if(message.guild.id != 717423546049101894 && message.guild.id != 868430008404832286){
 
     if(db.get(`snipedGuild_${message.guild.id}`)){
          let number = args.slice(0).join(' ');
@@ -2088,7 +2399,7 @@ client.on("message", async message => {
          }
       
     }
-     }
+    }
     
     
   }
@@ -2355,6 +2666,7 @@ client.on("message", async message => {
       }
       if (buffer>5) {message.channel.send('5 is max bruh. Think im actually finna spam '+ buffer + ' scrams lookin ass. smh')}  
     }
+  }catch(e){console.log("SECONDMESSAGE EVENT")}
 
 });
 
