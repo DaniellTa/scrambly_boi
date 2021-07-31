@@ -607,6 +607,7 @@ client.on("clickButton", async (button) => {
 //==================================================================
   client.on("message", async message => {
     try{
+    if(message.author && message.channel && message.guild){
     if(message.author.id === client.user.id) return; //i added it bro bro i added reeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
     // ok i think i am bad
     // respond to dms
@@ -1111,6 +1112,7 @@ client.on("clickButton", async (button) => {
       }
 
     }
+    }
     }catch(e){console.log("FIRSTMESSAGE EVENT")}
 
 });
@@ -1120,6 +1122,7 @@ client.on("clickButton", async (button) => {
 
 client.on("message", async message => {
   try{
+  if(message.author && message.channel && message.guild){
   if(message.author.id === client.user.id) return;
   if (message.channel.id === 1) return;
 
@@ -2666,6 +2669,7 @@ client.on("message", async message => {
       }
       if (buffer>5) {message.channel.send('5 is max bruh. Think im actually finna spam '+ buffer + ' scrams lookin ass. smh')}  
     }
+  }
   }catch(e){console.log("SECONDMESSAGE EVENT")}
 
 });
