@@ -2119,7 +2119,7 @@ client.on("message", async message => {
     }); //returns 1 rem
   }
 
-  if(command === "time"){
+  if(command === "time" || command === "timer"){
     const test_embed = new Discord.MessageEmbed()
       .setTitle("Timer for " + message.author.tag)
       .setDescription(`<@${message.author.id}>`)
