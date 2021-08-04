@@ -61,7 +61,7 @@ module.exports = {
       message.channel.send(timehelp);
     }
     else{
-      let scrams1 = darken('0 1 2 3 noob3 4 5 6 7 squan pyraminx megaminx clock skewb')
+      let scrams1 = darken('0 1 2 3 noob3 scramble 4 5 6 7 squan pyraminx megaminx clock skewb')
         let scrams2 = "[regripless](https://www.reddit.com/r/Cubers/comments/f8xxcf/a_bot_that_generates_regripless_scrambles_more/?utm_medium=android_app&utm_source=share)"
         let resources = darken('invite tuesdaytips cross beginnerf2l f2lexplained f2l lookahead vls magicwondeful oll coll ollcp zbll pll 4lll ohpll lltips 1lll 3style jperm jay feliks max cubeskills cstimer tc scs zcube cubezz')
         let utility = "\`show\` \`<puzzle>\` \`<moves to show>\` \`(eg. \"plz show 3 R U R' U'\")\`\n\`setup\` \`<moves to inverse>\`\n\`memo\` \`<scramble>\` | \`*plz help memo for more info*\`\n\`v\` \`<virtual>\` | \`(eg. \"plz v ijkf\" => R U R' U')\`"
