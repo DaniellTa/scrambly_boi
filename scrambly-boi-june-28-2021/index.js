@@ -423,14 +423,9 @@ client.on("clickButton", async (button) => {
     .setLabel("times history")
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_past_times`)
-
-    const tip = new disbut.MessageButton()
-    .setLabel("tip")
-    .setStyle("blurple")
-    .setID(`${button.clicker.user.id}_tip`)
     
     button.message.edit({
-      buttons: [start, last_scram, past_times, tip],
+      buttons: [start, last_scram, past_times],
       embed: embed
     })
   }
