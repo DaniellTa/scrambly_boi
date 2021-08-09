@@ -2144,7 +2144,7 @@ client.on("message", async message => {
     .setID(`${message.author.id}_timer`)
 
     const tip = new disbut.MessageButton()
-    .setLabel("tip")
+    .setEmoji("💡")
     .setStyle("blurple")
     .setID(`${message.author.id}_tip`)
 
