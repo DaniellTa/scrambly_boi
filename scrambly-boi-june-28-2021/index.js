@@ -1,3 +1,4 @@
+
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const moment = require("moment")
@@ -122,15 +123,13 @@ client.on("messageDelete", (messageDelete) => {
 
 client.on("typingStart", function(channel, user){
   try{
-
-  if(db.get(`${user.id}_start_timer`) && channel.id == String(db.get(`${user.id}_start_timer.channelId`)) && db.get(`${user.id}_start_timer.checkTime`)){
+    if(db.get(`${user.id}_start_timer`) && channel.id == String(db.get(`${user.id}_start_timer.channelId`)) && db.get(`${user.id}_start_timer.checkTime`)){
     db.set(`${user.id}_start_timer.checkTime`, false)
 
     let elapsed = ((Date.now() - db.get(`${user.id}_start_timer.start`))/1000).toFixed(2)
-    db.push(`${user.id}_all_times`, elapsed)
-
     let scram = plz3().description
     db.push(`${user.id}_all_scrambles`, scram)
+    db.push(`${user.id}_all_times`, elapsed)
 
     const embed = new Discord.MessageEmbed()
     .setTitle("Timer for " + user.username)
@@ -148,19 +147,26 @@ client.on("typingStart", function(channel, user){
     .setStyle("blurple")
     .setID(`${user.id}_last_scramble`)
 
+    const del = new disbut.MessageButton()
+    .setEmoji("🗑️")
+    .setStyle("blurple")
+    .setID(`${user.id}_delete_time`)
+
     const past_times = new disbut.MessageButton()
-    .setLabel("times history")
+    .setLabel("session")
     .setStyle("blurple")
     .setID(`${user.id}_past_times`)
-  
+
+
     channel.messages.fetch({around: db.get(`${user.id}_start_timer.msgId`), limit: 1})
     .then(msg => {
         const fetchedMsg = msg.first();
         fetchedMsg.edit({
-          buttons: [start, new_scram, past_times],
+          buttons: [start, new_scram, del, past_times],
           embed: embed
         });
     });
+  
   }
   }catch(e){console.log("TYPINGSTART EVENT")}
 });
@@ -370,7 +376,7 @@ client.on("clickButton", async (button) => {
   });
 
 
-  // clicks start button 
+  // clicks start button
   if (button.id === `${button.clicker.user.id}_timer`){
     button.reply.defer()
     db.set(`${button.clicker.user.id}_start_timer`, {start: [Date.now()], checkTime: [true], channelId: [button.message.channel.id], msgId: [button.message.id]})
@@ -398,10 +404,12 @@ client.on("clickButton", async (button) => {
 
     let elapsed = ((Date.now() - db.get(`${button.clicker.user.id}_start_timer.start`))/1000).toFixed(2)
     db.push(`${button.clicker.user.id}_all_times`, elapsed)
-    
+
 
     let scram = plz3().description
     db.push(`${button.clicker.user.id}_all_scrambles`, scram)
+
+    db.set(`${button.clicker.user.id}_clicks_confirm_deny`, 0)
 
     const embed = new Discord.MessageEmbed()
     .setTitle("Timer for " + button.clicker.user.username)
@@ -419,18 +427,125 @@ client.on("clickButton", async (button) => {
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_last_scramble`)
 
+    const del = new disbut.MessageButton()
+    .setEmoji("🗑️")
+    .setStyle("blurple")
+    .setID(`${button.clicker.user.id}_delete_time`)
+
     const past_times = new disbut.MessageButton()
-    .setLabel("times history")
+    .setLabel("session")
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_past_times`)
-    
+
+
     button.message.edit({
-      buttons: [start, last_scram, past_times],
+      buttons: [start, last_scram, del, past_times],
       embed: embed
     })
   }
 
-  //clicks times history
+  //clicks delete
+  if (button.id === `${button.clicker.user.id}_delete_time`){
+    button.reply.defer()
+    db.add(`${button.clicker.user.id}_clicks_confirm_deny`, 1)
+    
+    if (db.get(`${button.clicker.user.id}_clicks_confirm_deny`) < 2){
+
+      let elapsed = db.get(`${button.clicker.user.id}_all_times`)[db.get(`${button.clicker.user.id}_all_times`).length - 1]
+      let scram = db.get(`${button.clicker.user.id}_all_scrambles`)[db.get(`${button.clicker.user.id}_all_scrambles`).length - 1]
+
+      const embed = new Discord.MessageEmbed()
+        .setTitle("Timer for " + button.clicker.user.username)
+        .setDescription(scram + "\n\nTime: " + elapsed + " seconds")
+        .setColor("BLUE")
+        .setThumbnail(button.clicker.user.avatarURL())
+
+      const start = new disbut.MessageButton()
+        .setLabel("start timer")
+        .setStyle("green")
+        .setID(`${button.clicker.user.id}_timer`)
+
+      const last_scram = new disbut.MessageButton()
+        .setLabel("last scramble")
+        .setStyle("blurple")
+        .setID(`${button.clicker.user.id}_last_scramble`)
+
+      const del = new disbut.MessageButton()
+        .setEmoji("🗑️")
+        .setStyle("red")
+        .setID(`${button.clicker.user.id}_delete_time`)
+
+      const past_times = new disbut.MessageButton()
+        .setLabel("session")
+        .setStyle("blurple")
+        .setID(`${button.clicker.user.id}_past_times`)
+
+
+      button.message.edit({
+        buttons: [start, last_scram, del, past_times],
+        embed: embed
+      })
+    }
+    else{
+      db.set(`${button.clicker.user.id}_clicks_confirm_deny`, 0)
+
+      const arr1 = db.get(`${button.clicker.user.id}_all_times`)
+      const arr2 = db.get(`${button.clicker.user.id}_all_scrambles`)
+      let deleted_time = arr1[arr1.length-1]
+      try{
+        arr1.pop()
+        arr2.splice(arr2.length-2, 1)
+      }catch(e){console.log(e)}
+      db.set(`${button.clicker.user.id}_all_times`, arr1)
+      db.set(`${button.clicker.user.id}_all_scrambles`, arr2)
+
+      //fix scram
+      let elapsed = db.get(`${button.clicker.user.id}_all_times`)[db.get(`${button.clicker.user.id}_all_times`).length - 1]
+      let scram = db.get(`${button.clicker.user.id}_all_scrambles`)[db.get(`${button.clicker.user.id}_all_scrambles`).length - 1]
+
+      const embed = new Discord.MessageEmbed()
+        .setTitle("Timer for " + button.clicker.user.username)
+        .setDescription(scram + "\n\nTime: " + elapsed + " seconds\n\nDeleted: " + deleted_time + " seconds")
+        .setColor("BLUE")
+        .setThumbnail(button.clicker.user.avatarURL())
+
+      const start = new disbut.MessageButton()
+        .setLabel("start timer")
+        .setStyle("green")
+        .setID(`${button.clicker.user.id}_timer`)
+
+      const last_scram = new disbut.MessageButton()
+        .setLabel("last scramble")
+        .setStyle("blurple")
+        .setID(`${button.clicker.user.id}_last_scramble`)
+
+      const del = new disbut.MessageButton()
+        .setEmoji("🗑️")
+        .setStyle("blurple")
+        .setID(`${button.clicker.user.id}_delete_time`)
+
+      const past_times = new disbut.MessageButton()
+        .setLabel("session")
+        .setStyle("blurple")
+        .setID(`${button.clicker.user.id}_past_times`)
+
+      if (db.get(`${button.clicker.user.id}_all_times`).length > 1) {
+        button.message.edit({
+          buttons: [start, last_scram, del, past_times],
+          embed: embed
+        })
+      }
+      else{
+        button.message.edit({
+          buttons: [start, last_scram, past_times],
+          embed: embed
+        })
+      }
+    }
+
+  }
+
+  //clicks session
   if (button.id === `${button.clicker.user.id}_past_times`){
     button.reply.defer()
 
@@ -439,32 +554,319 @@ client.on("clickButton", async (button) => {
     let count = 0
     let scrams = db.get(`${button.clicker.user.id}_all_scrambles`)
     let times = db.get(`${button.clicker.user.id}_all_times`)
-    for (let i = 0; i<scrams.length-1; i++){
-      history.push((i+1) + ". **" + times[i+1] + "**\t" + scrams[i] + "\n")
-      count++
-      total += Number(times[i+1])
+
+    //this is int dividing by 25 to get all pages 25 scrams long
+    //change the four 5s here
+    let numpages = ~~((scrams.length-1)/25) + 1
+    db.set(`${button.clicker.user.id}_numpages`, numpages)
+    db.set(`${button.clicker.user.id}_current_page`, 1)
+
+
+    let start = 0
+    let end = 25
+    while (history.length < scrams.length) {
+      let list = []
+
+      if (scrams.length-1 < end) {
+        end = scrams.length-1
+      }
+      for (let i = start; i < end; i++) {
+        list.push((i + 1) + ". **" + times[i + 1] + "**\t" + scrams[i] + "\n")
+        count++
+        total += Number(times[i + 1])
+      }
+      list = String(list).replace(/,/g, "")
+      start += 25
+      end += 25
+      history.push(list)
     }
+
+    db.set(`${button.clicker.user.id}_all_pages`, history)
+    db.set(`${button.clicker.user.id}_mean`, (total / count).toFixed(2))
+
+
     const embed = new Discord.MessageEmbed()
-    .setTitle("Times History")
-    .setDescription(String(history).replace(/,/g, ""))
+    .setTitle("Session")
+    .setDescription(history[0])
     .setColor('BLUE')
     .setThumbnail(button.clicker.user.avatarURL())
-    .setFooter("Mean: " + (total/count).toFixed(2) + " seconds")
-
-    const start = new disbut.MessageButton()
-    .setLabel("start timer")
-    .setStyle("green")
-    .setID(`${button.clicker.user.id}_timer`)
+    .setFooter("Mean: " + db.get(`${button.clicker.user.id}_mean`) + " seconds\npg 1/" + db.get(`${button.clicker.user.id}_numpages`))
 
     const back = new disbut.MessageButton()
-    .setLabel("go back")
+    .setLabel("return")
     .setStyle("red")
     .setID(`${button.clicker.user.id}_back`)
+
+    const right = new disbut.MessageButton()
+    .setStyle("blurple")
+    .setEmoji("➡️")
+    .setID(`${button.clicker.user.id}_right`)
+
+    const full_right = new disbut.MessageButton()
+    .setStyle("blurple")
+    .setEmoji("⏩")
+    .setID(`${button.clicker.user.id}_fullright`)
+
+    const clear = new disbut.MessageButton()
+    .setLabel("clear session")
+    .setStyle("red")
+    .setID(`${button.clicker.user.id}_clear`)
+
+    if (db.get(`${button.clicker.user.id}_current_page`) < db.get(`${button.clicker.user.id}_numpages`)){
+      if(db.get(`${button.clicker.user.id}_all_times`).length > 1){
+        button.message.edit({
+          buttons: [back, right, full_right, clear],
+          embed: embed
+        })
+      }
+      else{
+        button.message.edit({
+          buttons: [back, right, full_right],
+          embed: embed
+        })
+      }
+    }
+
+    else{
+      if (db.get(`${button.clicker.user.id}_all_times`).length > 1) {
+        button.message.edit({
+          buttons: [back, clear],
+          embed: embed
+        })
+      }
+      else{
+        button.message.edit({
+          buttons: [back],
+          embed: embed
+        })
+      }
+    }
+  }
+
+  //clicks clear session
+  if(button.id === `${button.clicker.user.id}_clear`){
+    button.reply.defer()
+    const embed = new Discord.MessageEmbed()
+      .setTitle("CLEAR SESSION HISTORY")
+      .setDescription(`Are you sure you want to clear your session of ${db.get(`${button.clicker.user.id}_all_times`).length-1} solves?`)
+      .setColor('RED')
+      .setThumbnail("https://cdn.discordapp.com/emojis/758340716413059102.png?v=1")
+      .setFooter("This action is irreversible")
+
+    const back = new disbut.MessageButton()
+      .setLabel("no")
+      .setStyle("red")
+      .setID(`${button.clicker.user.id}_back`)
+
+    const yes = new disbut.MessageButton()
+      .setLabel("yes")
+      .setStyle("green")
+      .setID(`${button.clicker.user.id}_confirm_clear`)
+
+
+    button.message.edit({
+      buttons: [back, yes],
+      embed: embed
+    })
+  }
+
+  //clicks yes clear session
+  if (button.id === `${button.clicker.user.id}_confirm_clear`) {
+    button.reply.defer()
+
+    let scram = plz3()
+    db.set(`${button.clicker.user.id}_all_times`, [0])
+    db.set(`${button.clicker.user.id}_all_scrambles`, [scram.description])
+
+    const embed = new Discord.MessageEmbed()
+      .setTitle("Session cleared")
+      .setColor('GREEN')
+
+    const back = new disbut.MessageButton()
+      .setLabel("return")
+      .setStyle("red")
+      .setID(`${button.clicker.user.id}_back`)
+
 
     button.message.edit({
       buttons: [back],
       embed: embed
     })
+  }
+
+  //clicks right
+  if (button.id === `${button.clicker.user.id}_right`) {
+    button.reply.defer()
+    db.add(`${button.clicker.user.id}_current_page`, 1)
+    let curr_page = db.get(`${button.clicker.user.id}_current_page`)
+
+    const embed = new Discord.MessageEmbed()
+      .setTitle("Session")
+      .setDescription(db.get(`${button.clicker.user.id}_all_pages`)[curr_page-1])
+      .setColor('BLUE')
+      .setThumbnail(button.clicker.user.avatarURL())
+      .setFooter("Mean: " + db.get(`${button.clicker.user.id}_mean`) + " seconds\npg " + curr_page + "/"+ db.get(`${button.clicker.user.id}_numpages`))
+
+    const back = new disbut.MessageButton()
+      .setLabel("return")
+      .setStyle("red")
+      .setID(`${button.clicker.user.id}_back`)
+
+    const left = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⬅️")
+      .setID(`${button.clicker.user.id}_left`)
+
+    const right = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("➡️")
+      .setID(`${button.clicker.user.id}_right`)
+
+    const full_right = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⏩")
+      .setID(`${button.clicker.user.id}_fullright`)
+
+    const full_left = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⏪")
+      .setID(`${button.clicker.user.id}_fullleft`)
+
+    if (curr_page < db.get(`${button.clicker.user.id}_numpages`)) {
+      button.message.edit({
+        buttons: [back, full_left, left, right, full_right],
+        embed: embed
+      })
+    }
+
+    else {
+      button.message.edit({
+        buttons: [back, full_left, left],
+        embed: embed
+      })
+    }
+  }
+
+  //clicks left
+  if (button.id === `${button.clicker.user.id}_left`) {
+    button.reply.defer()
+    db.add(`${button.clicker.user.id}_current_page`, -1)
+    let curr_page = db.get(`${button.clicker.user.id}_current_page`)
+
+    const embed = new Discord.MessageEmbed()
+      .setTitle("Session")
+      .setDescription(db.get(`${button.clicker.user.id}_all_pages`)[curr_page - 1])
+      .setColor('BLUE')
+      .setThumbnail(button.clicker.user.avatarURL())
+      .setFooter("Mean: " + db.get(`${button.clicker.user.id}_mean`) + " seconds\npg " + curr_page + "/" + db.get(`${button.clicker.user.id}_numpages`))
+
+    const back = new disbut.MessageButton()
+      .setLabel("return")
+      .setStyle("red")
+      .setID(`${button.clicker.user.id}_back`)
+
+    const left = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⬅️")
+      .setID(`${button.clicker.user.id}_left`)
+
+    const right = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("➡️")
+      .setID(`${button.clicker.user.id}_right`)
+
+    const full_right = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⏩")
+      .setID(`${button.clicker.user.id}_fullright`)
+
+    const full_left = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⏪")
+      .setID(`${button.clicker.user.id}_fullleft`)
+
+    if (curr_page > 1) {
+      button.message.edit({
+        buttons: [back, full_left, left, right, full_right],
+        embed: embed
+      })
+    }
+
+    else {
+      button.message.edit({
+        buttons: [back, right, full_right],
+        embed: embed
+      })
+    }
+  }
+
+  //clicks fullright
+  if (button.id === `${button.clicker.user.id}_fullright`) {
+    button.reply.defer()
+    db.set(`${button.clicker.user.id}_current_page`, db.get(`${button.clicker.user.id}_numpages`))
+    let curr_page = db.get(`${button.clicker.user.id}_current_page`)
+
+    const embed = new Discord.MessageEmbed()
+      .setTitle("Session")
+      .setDescription(db.get(`${button.clicker.user.id}_all_pages`)[curr_page - 1])
+      .setColor('BLUE')
+      .setThumbnail(button.clicker.user.avatarURL())
+      .setFooter("Mean: " + db.get(`${button.clicker.user.id}_mean`) + " seconds\npg " + curr_page + "/" + db.get(`${button.clicker.user.id}_numpages`))
+
+    const back = new disbut.MessageButton()
+      .setLabel("return")
+      .setStyle("red")
+      .setID(`${button.clicker.user.id}_back`)
+
+    const left = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⬅️")
+      .setID(`${button.clicker.user.id}_left`)
+
+    const full_left = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⏪")
+      .setID(`${button.clicker.user.id}_fullleft`)
+
+    button.message.edit({
+      buttons: [back, full_left, left],
+      embed: embed
+    })
+  }
+
+  //clicks fullleft
+  if (button.id === `${button.clicker.user.id}_fullleft`) {
+    button.reply.defer()
+    db.set(`${button.clicker.user.id}_current_page`, 1)
+    let curr_page = db.get(`${button.clicker.user.id}_current_page`)
+
+    const embed = new Discord.MessageEmbed()
+      .setTitle("Session")
+      .setDescription(db.get(`${button.clicker.user.id}_all_pages`)[curr_page - 1])
+      .setColor('BLUE')
+      .setThumbnail(button.clicker.user.avatarURL())
+      .setFooter("Mean: " + db.get(`${button.clicker.user.id}_mean`) + " seconds\npg " + curr_page + "/" + db.get(`${button.clicker.user.id}_numpages`))
+
+    const back = new disbut.MessageButton()
+      .setLabel("return")
+      .setStyle("red")
+      .setID(`${button.clicker.user.id}_back`)
+
+    const right = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("➡️")
+      .setID(`${button.clicker.user.id}_right`)
+
+    const full_right = new disbut.MessageButton()
+      .setStyle("blurple")
+      .setEmoji("⏩")
+      .setID(`${button.clicker.user.id}_fullright`)
+
+    button.message.edit({
+      buttons: [back, right, full_right],
+      embed: embed
+    })
+    
   }
 
   //clicks tip
@@ -473,13 +875,13 @@ client.on("clickButton", async (button) => {
 
     const embed = new Discord.MessageEmbed()
     .setTitle("Tab Navigation")
-    .setDescription("If you are on PC, try the following steps to time your solves more consistently!\n\n1. TAB\n2. UP ARROW\n3. TAB (x4)\n4. Press or hold SPACE to start and stop the timer")
+    .setDescription("If you are on PC, try the following steps to time your solves more consistently!\n\n1. TAB\n2. UP ARROW\n3. TAB (3 or 4 times)\n4. Press or hold SPACE to start and stop the timer")
     .setColor('BLUE')
     .setImage("https://cdn.discordapp.com/attachments/524029492449116160/870098289293410395/final_6101f2555955d800f69eba3e_729059.gif")
     .setFooter(button.clicker.user.tag, button.clicker.user.avatarURL())
 
     const back = new disbut.MessageButton()
-    .setLabel("go back")
+      .setLabel("return")
     .setStyle("red")
     .setID(`${button.clicker.user.id}_back`)
 
@@ -489,8 +891,7 @@ client.on("clickButton", async (button) => {
     })
   }
 
-
-  //clicks go back
+  //clicks return
   if (button.id === `${button.clicker.user.id}_back`){
     button.reply.defer()
 
@@ -510,24 +911,41 @@ client.on("clickButton", async (button) => {
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_last_scramble`)
 
+    const del = new disbut.MessageButton()
+    .setEmoji("🗑️")
+    .setStyle("blurple")
+    .setID(`${button.clicker.user.id}_delete_time`)
+
     const past_times = new disbut.MessageButton()
-    .setLabel("times history")
+    .setLabel("session")
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_past_times`)
-    
-    button.message.edit({
-      buttons: [start, last_scram, past_times],
-      embed: embed
-    })
+
+    if (db.get(`${button.clicker.user.id}_all_times`).length > 1) {
+      button.message.edit({
+        buttons: [start, last_scram, del, past_times],
+        embed: embed
+      })
+    }
+    else {
+      button.message.edit({
+        buttons: [start, last_scram, past_times],
+        embed: embed
+      })
+    }
+
   }
 
   // clicks last scramble
   if (button.id === `${button.clicker.user.id}_last_scramble`){
     button.reply.defer()
 
+    let scram = db.get(`${button.clicker.user.id}_all_scrambles`)[db.get(`${button.clicker.user.id}_all_scrambles`).length - 2]
+    let elapsed = db.get(`${button.clicker.user.id}_all_times`)[db.get(`${button.clicker.user.id}_all_times`).length - 1]
+
     const embed = new Discord.MessageEmbed()
     .setTitle("Timer for " + button.clicker.user.username)
-    .setDescription("Last scramble:\n" + db.get(`${button.clicker.user.id}_all_scrambles`)[db.get(`${button.clicker.user.id}_all_scrambles`).length - 2])
+    .setDescription("Last scramble:\n" + scram + "\n\nTime: " + elapsed + " seconds")
     .setColor("BLUE")
     .setThumbnail(button.clicker.user.avatarURL())
 
@@ -541,24 +959,40 @@ client.on("clickButton", async (button) => {
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_next_scramble`)
 
+    const del = new disbut.MessageButton()
+    .setEmoji("🗑️")
+    .setStyle("blurple")
+    .setID(`${button.clicker.user.id}_delete_time`)
+
     const past_times = new disbut.MessageButton()
-    .setLabel("times history")
+    .setLabel("session")
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_past_times`)
 
-    button.message.edit({
-      buttons: [start, next_scram, past_times],
-      embed: embed
-    })
+    if (db.get(`${button.clicker.user.id}_all_times`).length > 1) {
+      button.message.edit({
+        buttons: [start, next_scram, del, past_times],
+        embed: embed
+      })
+    }
+    else{
+      button.message.edit({
+        buttons: [start, next_scram, past_times],
+        embed: embed
+      })
+    }
   }
 
   //clicks next scramble
   if (button.id === `${button.clicker.user.id}_next_scramble`){
     button.reply.defer()
 
+    let scram = db.get(`${button.clicker.user.id}_all_scrambles`)[db.get(`${button.clicker.user.id}_all_scrambles`).length - 1]
+    let elapsed = db.get(`${button.clicker.user.id}_all_times`)[db.get(`${button.clicker.user.id}_all_times`).length - 1]
+
     const embed = new Discord.MessageEmbed()
     .setTitle("Timer for " + button.clicker.user.username)
-    .setDescription(db.get(`${button.clicker.user.id}_all_scrambles`)[db.get(`${button.clicker.user.id}_all_scrambles`).length - 1])
+    .setDescription(scram + "\n\nTime: " + elapsed + " seconds")
     .setColor("BLUE")
     .setThumbnail(button.clicker.user.avatarURL())
 
@@ -572,13 +1006,49 @@ client.on("clickButton", async (button) => {
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_last_scramble`)
 
+    const del = new disbut.MessageButton()
+    .setEmoji("🗑️")
+    .setStyle("blurple")
+    .setID(`${button.clicker.user.id}_delete_time`)
+
     const past_times = new disbut.MessageButton()
-    .setLabel("times history")
+    .setLabel("session")
     .setStyle("blurple")
     .setID(`${button.clicker.user.id}_past_times`)
 
+    if (db.get(`${button.clicker.user.id}_all_times`).length > 1) {
+      button.message.edit({
+        buttons: [start, old_scram, del, past_times],
+        embed: embed
+      })
+    }
+    else{
+      button.message.edit({
+        buttons: [start, old_scram, past_times],
+        embed: embed
+      })
+    }
+  }
+
+  //clicks info
+  if (button.id === `${button.clicker.user.id}_info`) {
+    button.reply.defer()
+    
+    const embed = new Discord.MessageEmbed()
+      .setTitle("Button Info")
+      .setURL('https://discord.com/oauth2/authorize?client_id=601113688245665864&scope=bot&permissions=8')
+      .setDescription("🗑️: Click twice to confirm deletion of most recent solve\n⏪: Skip to first page\n⬅️: Previous page\n➡️: Next page\n⏩: Skip to last page\n`plz deltime <solve number>`: Deletes solve\n\n\**Join the support server [here](https://discord.gg/WushFBN) if you have suggestions or to report any bugs**")
+      .setColor("GREEN")
+      .setThumbnail("https://cdn.discordapp.com/attachments/524029492449116160/756544705457553608/158-1580572_checklist-cartoon.png")
+      .setFooter(button.clicker.user.tag, button.clicker.user.avatarURL())
+
+    const back = new disbut.MessageButton()
+      .setLabel("return")
+      .setStyle("red")
+      .setID(`${button.clicker.user.id}_back`)
+    
     button.message.edit({
-      buttons: [start, old_scram, past_times],
+      buttons: [back],
       embed: embed
     })
   }
@@ -1108,7 +1578,7 @@ client.on("clickButton", async (button) => {
 
     }
     }
-    }catch(e){console.log("FIRSTMESSAGE EVENT")}
+    }catch(e){console.log(e)}
 
 });
 
@@ -2114,40 +2584,72 @@ client.on("message", async message => {
     }); //returns 1 rem
   }
 
-  if(command === "time" || command === "timer"){
-    const test_embed = new Discord.MessageEmbed()
-      .setTitle("Timer for " + message.author.tag)
-      .setDescription(`<@${message.author.id}>`)
-      .setColor("BLUE")
-      .setThumbnail(message.author.avatarURL())
-      .setFooter(message.guild.name, message.guild.iconURL())
-    client.channels.cache.get("869411177342595193").send(test_embed)
+  if(command === "deltime"){
+        let index = args[0]
+        if (!index) return message.channel.send("format: plz deltime <solve number>")
+        if (!db.get(`${message.author.id}_all_times`)) return message.channel.send("you dont have any solves in your session yet\nuse command plz time to start timing your solves")
+        if (db.get(`${message.author.id}_all_times`).length == 2) return message.channel.send("cannot delete one solve just use the button")
 
-    
-    let scram = plz3()
-    db.set(`${message.author.id}_all_times`, [0])
-    db.set(`${message.author.id}_all_scrambles`, [scram.description])
-    const embed = new Discord.MessageEmbed()
-    .setTitle("Timer for " + message.author.username)
-    .setDescription(scram.description)
-    .setColor("BLUE")
-    .setThumbnail(message.author.avatarURL())
+        const arr1 = db.get(`${message.author.id}_all_times`)
+        const arr2 = db.get(`${message.author.id}_all_scrambles`)
 
-    const start = new disbut.MessageButton()
-    .setStyle("green")
-    .setLabel("start timer")
-    .setID(`${message.author.id}_timer`)
+        try{
+          arr1.splice(index, 1)
+          arr2.splice(index-1, 1)
+          db.set(`${message.author.id}_all_times`, arr1)
+          db.set(`${message.author.id}_all_scrambles`, arr2)
+        }catch(e){return message.channel.send("make sure to use a vald solve index")}
 
-    const tip = new disbut.MessageButton()
-    .setEmoji("💡")
-    .setStyle("blurple")
-    .setID(`${message.author.id}_tip`)
+        message.channel.send(`removed solve number ${index} from your session`)
+    }
 
-    message.channel.send({
-      buttons: [start, tip],
-      embed: embed
-    })
-  }
+  if (command === "time" || command === "timer"){
+
+      const test_embed = new Discord.MessageEmbed()
+        .setTitle("Timer for " + message.author.tag)
+        .setDescription(`<@${message.author.id}>`)
+        .setColor("BLUE")
+        .setThumbnail(message.author.avatarURL())
+        .setFooter(message.guild.name, message.guild.iconURL())
+      client.channels.cache.get("869411177342595193").send(test_embed)
+      
+        let scram = plz3()
+        if (!db.get(`${message.author.id}_all_times`) && !db.get(`${message.author.id}_all_scrambles`)){
+            db.set(`${message.author.id}_all_times`, [0])
+            db.set(`${message.author.id}_all_scrambles`, [scram.description])
+        }
+
+        const embed = new Discord.MessageEmbed()
+        .setTitle("Timer for " + message.author.username)
+        .setDescription(scram.description)
+        .setColor("BLUE")
+        .setThumbnail(message.author.avatarURL())
+
+        const start = new disbut.MessageButton()
+        .setStyle("green")
+        .setLabel("start timer")
+        .setID(`${message.author.id}_timer`)
+
+        const past_times = new disbut.MessageButton()
+        .setStyle("blurple")
+        .setLabel("session")
+        .setID(`${message.author.id}_past_times`)
+
+        const tip = new disbut.MessageButton()
+        .setEmoji("💡")
+        .setStyle("blurple")
+        .setID(`${message.author.id}_tip`)
+
+        const info = new disbut.MessageButton()
+        .setEmoji("🗒️")
+        .setStyle("blurple")
+        .setID(`${message.author.id}_info`)
+
+        message.channel.send({
+          buttons: [start, past_times, tip, info],
+          embed: embed
+        })
+    }
 
   if(command === "gif"){
     if (message.channel.id == 681657479691632640 || message.channel.id == 681178209634746368){
@@ -2665,7 +3167,7 @@ client.on("message", async message => {
       if (buffer>5) {message.channel.send('5 is max bruh. Think im actually finna spam '+ buffer + ' scrams lookin ass. smh')}  
     }
   }
-  }catch(e){console.log("SECONDMESSAGE EVENT")}
+  }catch(e){console.log(e)}
 
 });
 
