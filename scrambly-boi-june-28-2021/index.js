@@ -492,12 +492,14 @@ client.on("clickButton", async (button) => {
       const arr1 = db.get(`${button.clicker.user.id}_all_times`)
       const arr2 = db.get(`${button.clicker.user.id}_all_scrambles`)
       let deleted_time = arr1[arr1.length-1]
-      try{
-        arr1.pop()
-        arr2.splice(arr2.length-2, 1)
-      }catch(e){console.log(e)}
-      db.set(`${button.clicker.user.id}_all_times`, arr1)
-      db.set(`${button.clicker.user.id}_all_scrambles`, arr2)
+      if(arr1.length > 1){
+        try{
+          arr1.pop()
+          arr2.splice(arr2.length-2, 1)
+        }catch(e){console.log(e)}
+        db.set(`${button.clicker.user.id}_all_times`, arr1)
+        db.set(`${button.clicker.user.id}_all_scrambles`, arr2)
+      }
 
       //fix scram
       let elapsed = db.get(`${button.clicker.user.id}_all_times`)[db.get(`${button.clicker.user.id}_all_times`).length - 1]
