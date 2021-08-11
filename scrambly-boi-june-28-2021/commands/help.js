@@ -65,7 +65,7 @@ module.exports = {
         let scrams2 = "[regripless](https://www.reddit.com/r/Cubers/comments/f8xxcf/a_bot_that_generates_regripless_scrambles_more/?utm_medium=android_app&utm_source=share)"
         let resources = darken('invite tuesdaytips cross beginnerf2l f2lexplained f2l lookahead vls magicwondeful oll coll ollcp zbll pll 4lll ohpll lltips 1lll 3style jperm jay feliks max cubeskills cstimer tc scs zcube cubezz')
         let utility = "\`show\` \`<puzzle>\` \`<moves to show>\` \`(eg. \"plz show 3 R U R' U'\")\`\n\`setup\` \`<moves to inverse>\`\n\`memo\` \`<scramble>\` | \`*plz help memo for more info*\`\n\`v\` \`<virtual>\` | \`(eg. \"plz v ijkf\" => R U R' U')\`"
-        let fun1 = darken('time gcd rps info cool diceroll meme recon horny vibe pog cry yt snipe flipcoin pop useless')
+        let fun1 = darken('time gcd rps info cool diceroll recon horny vibe pog cry yt snipe flipcoin pop useless')
         let fun2 = "\n\`mal\` \`<anime>\` | \`*returns link to anime*\`\n\`wcaid\` \`<name>\` | \`*returns wca stats*\`\n\`tcs\` \`<query>\` | \`*returns first result from the cubicle*\`\n\`reck\` \`<name>\` | \`*roasts*\`\n\`ratepp\` \`<name>\` | \`*pp inspection*\`\n\`rategirl\` \`<name>\` | \`*female inspection*\`\n\`yeet\` \`<emote>\` | \`*yeets*\`\n\`?\` \`<question>\` | \`*answers*\`\n\`bless\` \`<name>\` | \`*blesses*\`"
         const help = new Discord.MessageEmbed()
             .setColor('#0099ff')
