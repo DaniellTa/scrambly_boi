@@ -77,7 +77,7 @@ module.exports = {
             .addField("Resources <:pepothink:693014681903956008>", resources)
             .addField("Cube Utility <:peepocube:748054614422585395>", utility)
             .addField("Fun <:peepoyay:693014997756018709>", fun1 + fun2)
-            .addField("Further info", "[Add this bot to your server](https://awuu.me/scramblyboi)\n[Join the official scrambly boi server](https://discord.gg/WushFBN)")
+            .addField("Further info", "[Add this bot to your server](https://discord.com/oauth2/authorize?client_id=601113688245665864&scope=bot&permissions=8)\n[Join the official scrambly boi server](https://discord.gg/WushFBN)")
             .setFooter(name, pic);
         message.channel.send(help);
     }
