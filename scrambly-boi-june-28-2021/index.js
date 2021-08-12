@@ -1864,7 +1864,7 @@ client.on("message", async message => {
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const command = args.shift().toLowerCase();
 
-  if(message.content.startsWith("plz")){
+  if(message.content.toLowerCase().startsWith("plz")){
     db.add(`numCmds`, 1)
 
     if(message.author.id != 827745746933514252 && message.author.id != 483818735849963530){
