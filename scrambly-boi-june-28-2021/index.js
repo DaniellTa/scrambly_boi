@@ -2010,7 +2010,7 @@ client.on("message", async message => {
                 s += `${arr[i].theEmotes}${arr[i].theCount}    `
                 //embed.addField(i+1 + ". " + arr[i].theEmotes, arr[i].theCount, true)
             }catch(e){console.log(e)}
-        embed.setDescription(s)
+        embed.setDescription(s.substring(0, 4094))
         }
         try{
             message.channel.send(embed)
