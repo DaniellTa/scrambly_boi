@@ -1789,7 +1789,7 @@ client.on("message", async message => {
   const emt = message.content.match(/<:.+?:\d+>/g)
   const aemt = message.content.match(/<a:.+?:\d+>/g)
 
-  if(message.guild.id == 681177598931238920 && message.channel.id != 681657479691632640 && message.channel.id != 681178209634746368){
+  if ((message.channel.id == 524029492449116160 || message.guild.id == 681177598931238920) && message.channel.id != 681657479691632640 && message.channel.id != 681178209634746368 && !message.content.includes("changeemote")) {
     if (emt){
         for(let i = 0; i<emote_ids.length;i++){
             for (let j = 0;j<emt.length;j++){
@@ -1986,6 +1986,24 @@ client.on("message", async message => {
         db.delete(`elb_emotes`)
         db.delete(`elb_count`)
         message.channel.send("reset emote lb")
+    }
+	  
+    if (command === "changeemote" && message.author.id == 827745746933514252){
+          let emote = args[0]
+          let num = Number(args[1])
+
+          if (emote.match(/<:.+?:\d+>/g) || emote.match(/<a:.+?:\d+>/g)){
+            db.set(emote, num)
+
+            db.push(`elb_emotes`, emote)
+            db.push(`elb_count.count`, num)
+
+            message.channel.send("added emote: " + emote + " with count: " + num)
+          }
+          else{
+            message.channel.send("enter proper thing")
+          }
+
     }
 
     if(command === "emotelb"){
