@@ -1998,7 +1998,7 @@ client.on("message", async message => {
             arr.push({theEmotes: emotes[i], theCount: count[i]})
         }
 
-        arr = arr.sort((a, b) => a.theCount - b.theCount).reverse().slice(0, 100)
+        arr = arr.sort((a, b) => a.theCount - b.theCount).reverse().slice(0, 99)
 
         let embed = new Discord.MessageEmbed()
             .setTitle("Emotes Leaderboard")
