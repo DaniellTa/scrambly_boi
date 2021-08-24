@@ -1947,7 +1947,14 @@ client.on("message", async message => {
   if(command === "charles" || command === "cabarpes")message.channel.send("https://www.youtube.com/channel/UCQ4jGtTL7r0UT0I9leqZx8w");
   if(command === "charlitics"){message.channel.send("https://www.youtube.com/channel/UCkJIc3zID6F1wzVUnQAsdPw")}
   if(command === "charlescubes"){message.channel.send("https://www.youtube.com/channel/UCXgyMvEfVHF55ujT4v1uc5Q")}
-  if(command === "test") message.channel.send('JS: <:dan:758551869823385670>');
+  if (command === "test") {
+        message.react('🇯')
+        .then((msg) => {
+          setTimeout(function () {
+            message.delete()
+          }, 3000)
+        });
+      }
   if(command === "die") message.channel.send("<:peepoignorecri:693014724551508044>");
   if(command === "69") message.channel.send("\<:plzsext:693010009973587978>");
   if(command === "100") message.channel.send("bruh wot");
