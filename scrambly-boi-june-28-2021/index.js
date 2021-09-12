@@ -1397,7 +1397,7 @@ client.on("clickButton", async (button) => {
         fs.writeFile("./gmm.json", JSON.stringify(gmm), (err) => {
           if (err) console.error(err)
         });
-        //if(gnn[message.author.id].check){
+        if(gnn[message.author.id].check){
           var sleeptime = (gmm[message.author.id].stop - gnn[message.author.id].start)/1000;
 
           if(!db.get(`gngmpb_${message.author.id}`) || sleeptime < db.get(`gngmpb_${message.author.id}`)){
@@ -1436,7 +1436,7 @@ client.on("clickButton", async (button) => {
           fs.writeFile("./gnn.json", JSON.stringify(gnn), (err) => {
             if (err) console.error(err)
           });
-        //}
+        }
       }
 
       if (message.content.toLowerCase() === 'plz track sleep' || message.content.toLowerCase() === 'plz tracksleep'){
