@@ -2077,8 +2077,14 @@ client.on("message", async message => {
     }
 
     if (command === "lb") {
-      let emotes = db.get(`${message.author.id}_elb_emotes`)
-      let count = db.get(`${message.author.id}_elb_count.count`)
+      let person = args[0]
+      try {
+        person = await client.users.fetch(args[0])
+      } catch (e) {
+        person = message.mentions.users.first() || message.author
+      }
+      let emotes = db.get(`${person.id}_elb_emotes`)
+      let count = db.get(`${person.id}_elb_count.count`)
       let arr = []
 
       try {
