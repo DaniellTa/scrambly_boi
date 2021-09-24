@@ -2077,12 +2077,8 @@ client.on("message", async message => {
     }
 
     if (command === "lb") {
-      let person = args[0]
-      try {
-        person = await client.users.fetch(args[0])
-      } catch (e) {
-        person = message.mentions.users.first() || message.author
-      }
+      person = message.mentions.users.first() || message.author
+      
       let emotes = db.get(`${person.id}_elb_emotes`)
       let count = db.get(`${person.id}_elb_count.count`)
       let arr = []
@@ -2256,7 +2252,7 @@ client.on("message", async message => {
       if(!person) return message.channel.send("you have to mention a user or id")
 
       try{
-        person = await client.users.fetch(id)
+        person = await client.users.fetch(args[0])
       }catch(e){
         person = message.mentions.users.first() || message.author
       }
@@ -2356,7 +2352,7 @@ client.on("message", async message => {
     let id = args[0]
     let person = ""
     try{
-      person = await client.users.fetch(id)
+      person = await client.users.fetch(args[0])
     }catch(e){
       person = message.mentions.users.first() || message.author
     }
@@ -2373,7 +2369,7 @@ client.on("message", async message => {
     let has_perms = true
     let person = ""
     try{
-      person = await client.users.fetch(id)
+      person = await client.users.fetch(args[0])
     }catch(e){
       person = message.mentions.users.first() || message.author
     }
