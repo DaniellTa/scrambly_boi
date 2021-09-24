@@ -2021,12 +2021,27 @@ client.on("message", async message => {
     }
 
     if (command === "resetemotelb" && message.author.id == 483818735849963530){
-        for (let i = 0; i < db.get(`elb_emotes`).length; i++) {
+
+        let person = args[0]
+        
+        if(!person){
+          for (let i = 0; i < db.get(`elb_emotes`).length; i++) {
+              db.delete(db.get(`elb_emotes`)[i])
+          }
+          
+          db.delete(`elb_emotes`)
+          db.delete(`elb_count`)
+          message.channel.send("reset emote lb")
+      }
+      else{
+          for (let i = 0; i < db.get(`${person}_elb_emotes`).length; i++) {
             db.delete(db.get(`elb_emotes`)[i])
-        }
-        db.delete(`elb_emotes`)
-        db.delete(`elb_count`)
-        message.channel.send("reset emote lb")
+          }
+
+          db.delete(`${person}_elb_count`)
+          db.delete(`${person}_elb_count`)
+          message.channel.send("reset " + person + " lb")
+      }
     }
 	  
     if (command === "changeemote" && message.author.id == 483818735849963530){
@@ -2092,8 +2107,8 @@ client.on("message", async message => {
       arr = arr.sort((a, b) => a.theCount - b.theCount).reverse().slice(0, 100)
 
       let embed = new Discord.MessageEmbed()
-        .setTitle("Emotes Leaderboard")
-        .setColor("BLUE")
+        .setTitle("Personal Leaderboard")
+        .setColor("GREEN")
       let s = ""
 
       for (let i = 0; i < arr.length; i++) {
