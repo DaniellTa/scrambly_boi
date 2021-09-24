@@ -2038,7 +2038,7 @@ client.on("message", async message => {
             db.delete(db.get(`${person}_elb_emotes`)[i])
           }
 
-          db.delete(`${person}_elb_count`)
+          db.delete(`${person}_elb_emotes`)
           db.delete(`${person}_elb_count`)
           message.channel.send("reset " + person + " lb")
       }
