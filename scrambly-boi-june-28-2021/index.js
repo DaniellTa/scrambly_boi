@@ -2035,7 +2035,7 @@ client.on("message", async message => {
       }
       else{
           for (let i = 0; i < db.get(`${person}_elb_emotes`).length; i++) {
-            db.delete(db.get(`elb_emotes`)[i])
+            db.delete(db.get(`${person}_elb_emotes`)[i])
           }
 
           db.delete(`${person}_elb_count`)
