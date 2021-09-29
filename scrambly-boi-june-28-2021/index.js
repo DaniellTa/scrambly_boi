@@ -1815,6 +1815,12 @@ client.on("message", async message => {
                   db.push(`elb_count.count`, db.get(emt[j]))
                 } catch (e) { console.log(e) }
               }
+              if (db.get(`${message.author.id}`+emt[j])) {
+                db.add(`${message.author.id}` +emt[j], 1)
+              }
+              else {
+                db.set(`${message.author.id}` +emt[j], 1)
+              }
               if (db.get(`${message.author.id}_elb_emotes`) && db.get(`${message.author.id}_elb_emotes`).includes(emt[j])) {
                 let index = db.get(`${message.author.id}_elb_emotes`).indexOf(emt[j])
                 // update count for emote in elb_count
@@ -1823,7 +1829,7 @@ client.on("message", async message => {
                 for (let k = 0; k < index; k++) {
                   db.push(`${message.author.id}_elb_count.count`, arr[k])
                 }
-                db.push(`${message.author.id}_elb_count.count`, db.get(emt[j]))
+                db.push(`${message.author.id}_elb_count.count`, db.get(`${message.author.id}` +emt[j]))
                 for (let k = index + 1; k < arr.length; k++) {
                   db.push(`${message.author.id}_elb_count.count`, arr[k])
                 }
@@ -1831,7 +1837,7 @@ client.on("message", async message => {
               else {
                 try {
                   db.push(`${message.author.id}_elb_emotes`, emt[j])
-                  db.push(`${message.author.id}_elb_count.count`, db.get(emt[j]))
+                  db.push(`${message.author.id}_elb_count.count`, db.get(`${message.author.id}` +emt[j]))
                 } catch (e) { console.log(e) }
               }
               break
