@@ -1874,6 +1874,12 @@ client.on("message", async message => {
                   db.push(`elb_count.count`, db.get(aemt[j]))
                 } catch (e) { console.log(e) }
               }
+              if (db.get(`${message.author.id}` + aemt[j])) {
+                db.add(`${message.author.id}` + aemt[j], 1)
+              }
+              else {
+                db.set(`${message.author.id}` + aemt[j], 1)
+              }
               if (db.get(`${message.author.id}_elb_emotes`) && db.get(`${message.author.id}_elb_emotes`).includes(aemt[j])) {
                 let index = db.get(`${message.author.id}_elb_emotes`).indexOf(aemt[j])
                 // update count for emote in elb_count
@@ -1890,7 +1896,7 @@ client.on("message", async message => {
               else {
                 try {
                   db.push(`${message.author.id}_elb_emotes`, aemt[j])
-                  db.push(`${message.author.id}_elb_count.count`, db.get(aemt[j]))
+                  db.push(`${message.author.id}_elb_count.count`, db.get(`${message.author.id}` + aemt[j]))
                 } catch (e) { console.log(e) }
               }
               break
@@ -2129,7 +2135,7 @@ client.on("message", async message => {
       } catch (e) { }
     }
 
-    if (command === "reset" && message.author.id == 483818735849963530) {
+    if (command === "resetcommands" && message.author.id == 483818735849963530) {
         db.delete(`commands_${message.guild.id}`)
         db.delete(`response_${message.guild.id}`)
         message.channel.send("reset commands")
