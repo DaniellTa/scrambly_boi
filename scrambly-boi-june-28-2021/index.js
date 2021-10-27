@@ -1938,7 +1938,10 @@ client.on("message", async message => {
   if(command === "siauw") message.channel.send("https://www.youtube.com/channel/UCHV1K9ffQlMKhL1rB7P05Bg")
   if(command === "mats" || command === "valk") message.channel.send("https://www.youtube.com/channel/UCk_nBvBjw0DuEtrT8Sxv5vA")
   if(command === "vibe") message.channel.send("https://media.discordapp.net/attachments/700492943684796548/740042421601304606/image0.gif")
-  if(command === "dylan"){message.channel.send("https://www.youtube.com/channel/UCTvK6Qo6ENRP1aqnH96uXTg")}
+  if (command === "dylan") {
+    message.channel.send("https://cdn.discordapp.com/attachments/762833186295513088/902727919158312970/IMG_2897.png")
+    message.channel.send("https://cdn.discordapp.com/attachments/762833186295513088/902727937932025887/Screen_Shot_2021-10-09_at_12.33.49_AM.png")
+  }  
   if(command === "dyco") message.channel.send("https://www.youtube.com/channel/UCEJA--U6lRPx_apf-PlW9Mg")
   if(command === "gote"|| command === "goat" || command === "will") {message.channel.send("https://www.youtube.com/channel/UCESY2GGgcEcsSOwm7S9NLsg")}
   if(command === "llama") message.channel.send("https://streamerlinks.com/llama_sol")
