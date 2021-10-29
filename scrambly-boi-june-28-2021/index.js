@@ -2015,6 +2015,26 @@ client.on("message", async message => {
   //only for sb and test
   if(message.guild.id == 681177598931238920 || message.guild.id == 524028960565362728){
 
+    if (command === "mimic") {
+      if (!message.channel.guild.me.hasPermission('MANAGE_WEBHOOKS')) return message.channel.send('Missing permission: ``MANAGE_WEBHOOKS``')
+      let tagged = message.mentions.members.first()
+      if (!tagged) return message.channel.send('Ping a user to mimic')
+      if (!args[1]) return message.channel.send('Add the message')
+      if (message.content.includes('@here') || message.content.includes('@everyone') || message.mentions.roles.first()) return message.channel.send('You cannot have a ping in your message')
+      message.channel.createWebhook(tagged.displayName, {
+        avatar: tagged.user.avatarURL({ format: 'png', dynamic: true, size: 1024 }),
+      }).then(wb => {
+        wb.send(args.slice(1).join(' '))
+        message.delete()
+        setTimeout(() => {
+          wb.delete()
+        }, 10000)
+      })
+        .catch((e) => {
+          console.log(console.error)
+          message.channel.send('It looks like you have reached the max webhook limit. Try deleting some and then try this command again.');
+        })
+    }
 
     if (command === "resetemote" && message.author.id == 483818735849963530){
         let emote = args[0]
