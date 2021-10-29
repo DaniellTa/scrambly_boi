@@ -2015,7 +2015,7 @@ client.on("message", async message => {
   //only for sb and test
   if(message.guild.id == 681177598931238920 || message.guild.id == 524028960565362728){
 
-    if (command === "mimic") {
+    if (command === "mimic" || command === "mimmick") {
       if (!message.channel.guild.me.hasPermission('MANAGE_WEBHOOKS')) return message.channel.send('Missing permission: ``MANAGE_WEBHOOKS``')
       let tagged = message.mentions.members.first()
       if (!tagged) return message.channel.send('Ping a user to mimic')
