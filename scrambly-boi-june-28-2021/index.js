@@ -2013,7 +2013,7 @@ client.on("message", async message => {
   if(command === "0" || command === "0x0") message.channel.send("‏‏‎ ‎‏‏‎ ‎");
 
   //only for sb and test and dylan and clowder
-    if (message.guild.id == 681177598931238920 || message.guild.id == 524028960565362728 || message.guid.id == 844579251180011542 || message.guild.id == 778068679321452614){
+    if (message.guild.id == 681177598931238920 || message.guild.id == 524028960565362728 || message.guild.id == 844579251180011542 || message.guild.id == 778068679321452614){
 
     if (command === "mimic" || command === "mimmick") {
       if (!message.channel.guild.me.hasPermission('MANAGE_WEBHOOKS')) return message.channel.send('Missing permission: ``MANAGE_WEBHOOKS``')
