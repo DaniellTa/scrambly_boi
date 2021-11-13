@@ -13,7 +13,7 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 const Stopwatch = require('statman-stopwatch');
 const stopwatch = new Stopwatch();
 const talkedRecently = new Set();
-const Canvas = require('canvas');
+//const Canvas = require('canvas');
 const disbut = require('discord-buttons');
 disbut(client)
 const { MessageButton, MessageActionRow } = require("discord-buttons")
