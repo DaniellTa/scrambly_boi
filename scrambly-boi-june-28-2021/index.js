@@ -2,14 +2,12 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const moment = require("moment")
-const giveMeAJoke = require('give-me-a-joke');
 const randomPuppy = require("random-puppy");
 const Cube = require("cubejs");
 const cube = new Cube();
 const fs = require("fs");
 const db = require('quick.db')
 const lib = require("reddit-package")
-const redditimage = require("reddit.images");
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const Stopwatch = require('statman-stopwatch');
