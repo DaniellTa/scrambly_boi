@@ -2,7 +2,6 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const moment = require("moment")
-const randomPuppy = require("random-puppy");
 const Cube = require("cubejs");
 const cube = new Cube();
 const fs = require("fs");
